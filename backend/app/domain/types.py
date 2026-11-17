@@ -72,8 +72,11 @@ class NormalizedRecord:
     carrier: str | None
     issues: list[Issue] = field(default_factory=list)
     status: RecordStatus = RecordStatus.VALID
+    origin: str = ""  # "file · position", set when the record is stored; used in conflict messages
 
     def dedupe_key(self) -> tuple | None:
         if self.status == RecordStatus.REJECTED or not self.shipment_id or not self.milestone or not self.event_ts:
             return None
-        return (self.source, self.shipment_id, self.milestone.value, self.event_ts.isoformat(), self.location or "")
+        # every field must match; a repeat that differs in any value is a contradiction, not a duplicate
+        return (self.source, self.shipment_id, self.milestone.value, self.event_ts.isoformat(), self.location or "",
+                self.carrier or "")

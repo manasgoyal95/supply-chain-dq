@@ -3,7 +3,15 @@ from __future__ import annotations
 import csv
 import io
 
-from app.ingestion.readers.base import ReadContext, Reader, ReaderError, ReadResult, decode_text, register, tabular_rows
+from app.ingestion.readers.base import (
+    ReadContext,
+    Reader,
+    ReaderError,
+    ReadResult,
+    decode_text,
+    register,
+    tabular_rows,
+)
 
 
 @register

@@ -14,6 +14,7 @@ from pydantic import BaseModel
 from app.core.config import get_domain_config, get_settings
 from app.core.logging import configure_logging
 from app.ingestion.readers import ReaderError, registered_formats
+from app.quality.decisions import build_decisions
 from app.quality.rules import all_rules
 from app.services.store import Store
 
@@ -95,8 +96,10 @@ def trends() -> dict[str, Any]:
 
 
 @app.get("/api/v1/shipments")
-def shipments(status: str | None = None, q: str | None = None) -> list[dict[str, Any]]:
+def shipments(status: str | None = None, q: str | None = None, contradictions: bool = False) -> list[dict[str, Any]]:
     rows = store.shipment_rows()
+    if contradictions:
+        rows = [r for r in rows if r["contradictions"]]
     if status:
         rows = [r for r in rows if r["status"] == status]
     if q:
@@ -130,6 +133,11 @@ def records(status: str | None = None, source: str | None = None, rule: str | No
 def rules() -> list[dict[str, Any]]:
     return [{"code": r.code, "name": r.name, "level": r.level, "severity": r.severity.value,
              "description": r.description, "impact": r.impact} for r in all_rules()]
+
+
+@app.get("/api/v1/decisions")
+def decisions() -> list[dict[str, Any]]:
+    return build_decisions(get_domain_config())
 
 
 @app.get("/api/v1/campaigns")

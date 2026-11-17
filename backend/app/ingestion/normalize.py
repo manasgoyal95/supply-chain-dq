@@ -185,17 +185,22 @@ def status_from_issues(rec: NormalizedRecord) -> RecordStatus:
     return RecordStatus.VALID
 
 
-def mark_duplicates(records: list[NormalizedRecord], existing_keys: set[tuple]) -> int:
-    """Flags records already seen (in the DB or earlier in the same batch). Mutates `existing_keys`."""
+def mark_duplicates(records: list[NormalizedRecord], seen: dict[tuple, str], ref: str) -> int:
+    """Flags records already seen from the same source (in earlier files or earlier in this file).
+
+    `seen` maps dedupe key -> human reference of the first occurrence ("file · position"); it is mutated.
+    `ref` is the file name of the batch being processed.
+    """
     count = 0
     for rec in records:
         key = rec.dedupe_key()
         if key is None:
             continue
-        if key in existing_keys:
-            rec.issues.append(issue("R006", "Duplicate of an event already received from this source"))
+        if key in seen:
+            rec.issues.append(issue("R006", f"Duplicate of {seen[key]} (same source, shipment, milestone, time, "
+                                            "location and carrier)", duplicate_of=seen[key]))
             rec.status = RecordStatus.DUPLICATE
             count += 1
         else:
-            existing_keys.add(key)
+            seen[key] = f"{ref} · {rec.locator}"
     return count

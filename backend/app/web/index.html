@@ -8,60 +8,84 @@
 <style>
   :root {
     --bg: #f6f7f9; --panel: #fff; --ink: #1a2230; --muted: #5d6878; --line: #e3e7ed;
-    --accent: #2457c5; --ok: #1f8a4c; --warn: #b7791f; --bad: #c0392b; --info: #6b7a90;
-    --ok-bg: #e6f4ec; --warn-bg: #fdf3e1; --bad-bg: #fbe9e7; --info-bg: #eef1f5;
+    --accent: #2457c5; --ok: #1f8a4c; --warn: #a86a12; --bad: #c0392b; --info: #5b6b82;
+    --ok-bg: #e6f4ec; --warn-bg: #fdf3e1; --bad-bg: #fbe9e7; --info-bg: #eef1f5; --note-bg: #f3f6fc;
   }
   * { box-sizing: border-box; }
-  body { margin: 0; font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif; background: var(--bg); color: var(--ink); }
-  header { background: #13213d; color: #fff; padding: 14px 24px; display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+  body { margin: 0; font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif; background: var(--bg); color: var(--ink); }
+  header { background: #13213d; color: #fff; padding: 12px 24px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
   header h1 { font-size: 17px; margin: 0; font-weight: 600; }
-  header .asof { color: #aab7cf; font-size: 12px; }
-  nav { display: flex; gap: 4px; flex-wrap: wrap; }
-  nav button { background: transparent; border: 0; color: #c7d2e6; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+  header .asof { color: #c3cee3; font-size: 12px; }
+  header .asof a { color: #9fc0ff; }
+  nav { display: flex; gap: 2px; flex-wrap: wrap; }
+  nav button { background: transparent; border: 0; color: #c7d2e6; padding: 8px 11px; border-radius: 6px; cursor: pointer; font-size: 13px; }
   nav button.active, nav button:hover { background: #24375f; color: #fff; }
-  main { padding: 20px 24px; max-width: 1400px; margin: 0 auto; }
+  nav button.dec { color: #ffd58a; }
+  main { padding: 18px 24px 40px; max-width: 1400px; margin: 0 auto; }
   .grid { display: grid; gap: 14px; }
-  .kpis { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
-  .two { grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); }
+  .kpis { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+  .two { grid-template-columns: repeat(auto-fit, minmax(440px, 1fr)); }
   .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
-  .card h3 { margin: 0 0 10px; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); font-weight: 600; }
-  .kpi .v { font-size: 28px; font-weight: 650; }
-  .kpi .s { color: var(--muted); font-size: 12px; }
+  .card h3 { margin: 0 0 8px; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); font-weight: 600; }
+  .intro { background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 8px; padding: 12px 16px; margin-bottom: 14px; }
+  .intro h2 { margin: 0 0 4px; font-size: 16px; }
+  .intro p { margin: 2px 0; color: var(--muted); }
+  .note { background: var(--note-bg); border-radius: 6px; padding: 8px 10px; color: var(--muted); font-size: 12.5px; margin-top: 10px; }
+  .callout { background: var(--warn-bg); border: 1px solid #f0d9a8; border-radius: 8px; padding: 10px 14px; margin-bottom: 14px; }
+  .kpi .v { font-size: 27px; font-weight: 650; line-height: 1.2; }
+  .kpi .s { color: var(--muted); font-size: 12px; margin-top: 4px; }
+  .kpi .def { color: var(--muted); font-size: 11.5px; margin-top: 6px; border-top: 1px dashed var(--line); padding-top: 6px; }
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
   th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
-  th { color: var(--muted); font-weight: 600; font-size: 12px; position: sticky; top: 0; background: var(--panel); }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; background: var(--panel); }
+  th[title] { text-decoration: underline dotted; cursor: help; }
   tr.click:hover { background: #f1f5fc; cursor: pointer; }
   .pill { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; white-space: nowrap; }
-  .CLEAN, .VALID { background: var(--ok-bg); color: var(--ok); }
-  .NEEDS_REVIEW, .WARNING { background: var(--warn-bg); color: var(--warn); }
+  .CLEAN, .VALID, .USED, .AGREES { background: var(--ok-bg); color: var(--ok); }
+  .NEEDS_REVIEW, .WARNING, .CONFLICT { background: var(--warn-bg); color: var(--warn); }
   .UNUSABLE, .REJECTED, .ERROR { background: var(--bad-bg); color: var(--bad); }
-  .DUPLICATE, .INFO { background: var(--info-bg); color: var(--info); }
-  .bar { height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; min-width: 80px; }
-  .bar > i { display: block; height: 100%; background: var(--accent); }
-  .steps { display: flex; gap: 3px; }
-  .steps span { width: 16px; height: 10px; border-radius: 2px; background: var(--line); }
+  .DUPLICATE, .INFO, .NOT_USED { background: var(--info-bg); color: var(--info); }
+  .Assumption { background: var(--warn-bg); color: var(--warn); }
+  .Design_choice { background: #e8eefb; color: var(--accent); }
+  .Known_limitation { background: var(--bad-bg); color: var(--bad); }
+  a.d { display: inline-block; font-size: 10.5px; font-weight: 700; color: var(--accent); background: #e8eefb; border-radius: 4px; padding: 0 5px; margin-left: 4px; text-decoration: none; vertical-align: 1px; }
+  a.d:hover { background: var(--accent); color: #fff; }
+  .steps { display: flex; gap: 3px; align-items: center; }
+  .steps span { width: 15px; height: 10px; border-radius: 2px; background: var(--line); }
   .steps span.on { background: var(--accent); }
   .muted { color: var(--muted); }
+  .small { font-size: 12px; }
   .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
   input, select, button.btn { font: inherit; padding: 7px 10px; border: 1px solid var(--line); border-radius: 6px; background: #fff; }
   button.btn { cursor: pointer; }
   button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
-  .drop { border: 2px dashed #b9c4d6; border-radius: 10px; padding: 30px; text-align: center; color: var(--muted); background: #fbfcfe; }
+  .drop { border: 2px dashed #b9c4d6; border-radius: 10px; padding: 26px; text-align: center; color: var(--muted); background: #fbfcfe; }
   .drop.over { border-color: var(--accent); background: #eef3fd; }
   .timeline { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
-  .ms { border: 1px solid var(--line); border-radius: 8px; padding: 10px; min-height: 120px; font-size: 12px; }
+  .ms { border: 1px solid var(--line); border-radius: 8px; padding: 10px; font-size: 12px; }
   .ms.missing { background: repeating-linear-gradient(45deg, #fafbfc, #fafbfc 6px, #f1f3f6 6px, #f1f3f6 12px); color: var(--muted); }
-  .ms b { display: block; font-size: 12px; margin-bottom: 4px; }
+  .ms .t { font-weight: 700; font-size: 12.5px; }
+  .ms .why { color: var(--muted); font-size: 11.5px; margin: 4px 0; }
   .ms .src { font-weight: 600; color: var(--accent); }
-  .alt { margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--line); color: var(--muted); }
+  .alt { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line); }
+  .alt.conflict { border-top-color: #e3b25a; }
   pre { background: #f4f6f9; padding: 6px 8px; border-radius: 6px; font-size: 11px; white-space: pre-wrap; word-break: break-word; margin: 4px 0 0; }
-  .scroll { max-height: 560px; overflow: auto; }
+  .scroll { max-height: 600px; overflow: auto; }
   .heat td.c { text-align: center; font-variant-numeric: tabular-nums; }
   .delta.up { color: var(--ok); font-weight: 600; } .delta.down { color: var(--bad); font-weight: 600; }
-  .hidden { display: none; }
   .back { cursor: pointer; color: var(--accent); margin-bottom: 10px; display: inline-block; }
+  .reason { font-size: 14px; padding: 10px 14px; border-radius: 8px; margin-top: 14px; }
+  .reason.CLEAN { background: var(--ok-bg); color: #145c33; } .reason.NEEDS_REVIEW { background: var(--warn-bg); color: #6e4609; } .reason.UNUSABLE { background: var(--bad-bg); color: #7c241b; }
+  .formula { font-family: ui-monospace, Menlo, monospace; font-size: 12px; background: #f4f6f9; padding: 6px 8px; border-radius: 6px; margin-top: 6px; }
+  .legend { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 8px 16px; font-size: 12.5px; }
+  .dec-item { border-top: 1px solid var(--line); padding: 12px 0; }
+  .dec-item:target, .dec-item.hl { background: #fffbe8; }
+  .dec-item h4 { margin: 0 0 4px; font-size: 14px; }
+  .dec-item .kv { display: grid; grid-template-columns: 120px 1fr; gap: 3px 10px; font-size: 13px; margin-top: 6px; }
+  .dec-item .kv b { color: var(--muted); font-weight: 600; }
   canvas { max-height: 280px; }
-  @media (max-width: 700px) { main { padding: 12px 16px; } .two { grid-template-columns: 1fr; } .timeline { grid-template-columns: repeat(2, 1fr); } }
+  .empty { padding: 30px; text-align: center; color: var(--muted); }
+  @media (max-width: 760px) { main { padding: 12px 16px; } .two { grid-template-columns: 1fr; } .timeline { grid-template-columns: repeat(2, 1fr); } .dec-item .kv { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -71,161 +95,215 @@
   <span class="asof" id="asof"></span>
 </header>
 <main id="app"></main>
+<script>window.addEventListener('error', e => { document.body.dataset.jsError = e.message; });
+window.addEventListener('unhandledrejection', e => { document.body.dataset.jsError = String(e.reason); });</script>
 
 <script>
 const API = '/api/v1';
 const MS = ['GATE_IN', 'LOADED', 'DEPARTED', 'ARRIVED', 'DISCHARGED', 'DELIVERED'];
+const MS_LABEL = { GATE_IN: 'Gate In', LOADED: 'Loaded', DEPARTED: 'Departed', ARRIVED: 'Arrived', DISCHARGED: 'Discharged', DELIVERED: 'Delivered' };
 const COLORS = ['#2457c5', '#d97706', '#0f9d77', '#9333ea', '#dc2626', '#0891b2'];
-const TABS = { overview: 'Overview', sources: 'Sources', shipments: 'Shipments', issues: 'Data Issues', trends: 'Trends & Campaigns', ingest: 'Ingest', rules: 'Rules' };
-let charts = [], RULES = {}, current = 'overview';
+const TABS = { overview: 'Overview', sources: 'Sources', shipments: 'Shipments', issues: 'Data Issues', trends: 'Trends & Campaigns', ingest: 'Ingest', rules: 'Rules', decisions: 'Decisions & Assumptions' };
+const STATUS_DEF = {
+  CLEAN: 'No quality warnings. Describes data quality only. A clean shipment can still be in transit (incomplete).',
+  NEEDS_REVIEW: 'At least one warning: a gap, out-of-sequence times, sources in conflict, stale, or a record warning.',
+  UNUSABLE: 'Every record received for this shipment was rejected. Nothing can be shown to a customer.',
+};
+const RECORD_DEF = {
+  VALID: 'Passed all record checks.', WARNING: 'Usable, but has a warning (e.g. missing or invalid location).',
+  REJECTED: 'Unusable: missing/unknown shipment id, milestone or timestamp.', DUPLICATE: 'Same source already sent this exact event. Ignored.',
+};
+const JOURNEY_DEF = { COMPLETE: 'All 6 milestones present', DELIVERED_WITH_GAPS: 'Delivered, earlier milestones missing', IN_PROGRESS: 'Not yet delivered', NO_DATA: 'No usable milestones' };
+const CONTRA = ['S002', 'S003', 'S004', 'S005', 'S009'];
+let charts = [], RULES = {}, DEC = {}, current = 'overview';
 
 const $ = (s) => document.querySelector(s);
 const esc = (v) => String(v ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const pill = (s) => `<span class="pill ${esc(s)}">${esc(String(s).replace('_', ' '))}</span>`;
+const human = (s) => String(s).replaceAll('_', ' ');
+const pill = (s, title) => `<span class="pill ${esc(String(s).replace(' ', '_'))}" title="${esc(title || STATUS_DEF[s] || RECORD_DEF[s] || '')}">${esc(human(s))}</span>`;
 const fmt = (ts) => ts ? new Date(ts).toISOString().slice(0, 16).replace('T', ' ') : '—';
 const pct = (v) => `${(+v).toFixed(1)}%`;
-const ruleTag = (c) => `<span class="pill ${RULES[c]?.severity || 'INFO'}" title="${esc(RULES[c]?.description)}">${c} ${esc(RULES[c]?.name || '')}</span>`;
+const d = (...ids) => ids.map(id => `<a class="d" href="#" title="${esc(DEC[id]?.title || '')}" onclick="openDecision('${id}');return false">${id}</a>`).join('');
+const ruleTag = (c) => `<span class="pill ${RULES[c]?.severity || 'INFO'}" title="${esc(RULES[c]?.description)}">${c} ${esc(human(RULES[c]?.name || ''))}</span>`;
+const intro = (title, what, how) => `<div class="intro"><h2>${title}</h2><p>${what}</p>${how ? `<p>${how}</p>` : ''}</div>`;
+const kpi = (l, v, s, def, color) => `<div class="card kpi"><h3>${l}</h3><div class="v" style="${color ? 'color:' + color : ''}">${v}</div>${s ? `<div class="s">${s}</div>` : ''}${def ? `<div class="def">${def}</div>` : ''}</div>`;
 async function get(p) { const r = await fetch(API + p); if (!r.ok) throw new Error((await r.json()).error?.message || r.statusText); return r.json(); }
 function chart(el, cfg) { const c = new Chart(el, cfg); charts.push(c); return c; }
+const raw = (r) => typeof r.raw === 'string' ? r.raw : JSON.stringify(r.raw);
 
 function nav() {
-  $('#nav').innerHTML = Object.entries(TABS).map(([k, v]) => `<button data-t="${k}" class="${k === current ? 'active' : ''}">${v}</button>`).join('');
+  $('#nav').innerHTML = Object.entries(TABS).map(([k, v]) => `<button data-t="${k}" class="${k === current ? 'active' : ''} ${k === 'decisions' ? 'dec' : ''}">${v}</button>`).join('');
   $('#nav').onclick = (e) => { if (e.target.dataset.t) show(e.target.dataset.t); };
 }
 async function show(tab, arg) {
-  current = tab; nav(); charts.forEach(c => c.destroy()); charts = [];
+  const h = '#' + tab + (arg ? '/' + encodeURIComponent(arg) : '');
+  if (location.hash !== h) history.replaceState(null, '', h);
+  current = tab === 'shipment' ? 'shipments' : tab; nav(); charts.forEach(c => c.destroy()); charts = [];
   const ov = await get('/metrics/overview');
-  $('#asof').textContent = ov.as_of ? `Data as-of ${fmt(ov.as_of)} UTC · ${ov.runs} file(s) ingested` : 'No data yet';
-  if (!ov.events_received && tab !== 'ingest' && tab !== 'rules') return empty();
-  await ({ overview, sources, shipments, issues, trends, ingest, rules: rulesView, shipment })[tab](ov, arg);
+  $('#asof').innerHTML = ov.as_of
+    ? `Data as-of <b>${fmt(ov.as_of)} UTC</b> (latest valid event in the data)${d('D12')} · ${ov.runs} file(s) ingested · all times UTC${d('D04')}`
+    : 'No data loaded';
+  if (!ov.events_received && !['ingest', 'rules', 'decisions'].includes(tab)) return empty();
+  await ({ overview, sources, shipments, issues, trends, ingest, rules: rulesView, decisions, shipment })[tab](ov, arg);
+  window.scrollTo(0, 0);
 }
 function empty() {
-  $('#app').innerHTML = `<div class="card"><h3>No data ingested</h3><p>Upload files on the Ingest tab, or load the provided sample files.</p>
-    <button class="btn primary" onclick="loadSamples()">Load sample data</button></div>`;
+  $('#app').innerHTML = `<div class="card empty"><h3>No data loaded</h3><p>Upload files on the Ingest tab, or load the three provided sample files.</p>
+    <button class="btn primary" onclick="loadSamples()">Load provided sample files</button></div>`;
 }
 async function loadSamples() { await fetch(API + '/admin/load-samples', { method: 'POST' }); show('overview'); }
+function openDecision(id) { show('decisions', id); }
 
 // ---------------------------------------------------------------- Overview
 async function overview(ov) {
   const rs = ov.record_status, ss = ov.shipment_status, n = ov.shipments || 1;
+  const toConfirm = Object.values(DEC).filter(x => x.confirm).length;
   $('#app').innerHTML = `
+  ${intro('Overview', `One consolidated picture of every shipment, built from <b>${ov.sources}</b> source systems. Each source's records are merged per shipment onto the 6-step journey Gate In → Loaded → Departed → Arrived → Discharged → Delivered.`,
+    'Hover over any label for its definition. The blue <a class="d">Dxx</a> tags link to the decision behind a number.')}
+  <div class="callout"><b>${toConfirm} assumptions need business confirmation</b>, including which source wins when sources disagree${d('D07')}, the conflict tolerance${d('D08')} and the stale threshold${d('D12')}.
+    <a href="#" onclick="show('decisions');return false">Review all decisions →</a></div>
   <div class="grid kpis">
-    ${kpi('Events processed', ov.events_received, `${rs.VALID} valid · ${rs.WARNING} warn · ${rs.REJECTED} rejected · ${rs.DUPLICATE} dup`)}
-    ${kpi('Shipments', ov.shipments, `${ov.sources} source systems`)}
-    ${kpi('Avg journey completeness', pct(ov.avg_completeness), `of the 6-milestone journey`)}
-    ${kpi('Data quality score', ov.avg_score, `${ov.avg_score_usable} excluding unusable`)}
-    ${kpi('Clean shipments', pct(100 * ss.CLEAN / n), `${ss.CLEAN} shipments`, 'var(--ok)')}
-    ${kpi('Need review', pct(100 * ss.NEEDS_REVIEW / n), `${ss.NEEDS_REVIEW} shipments`, 'var(--warn)')}
-    ${kpi('Unusable', pct(100 * ss.UNUSABLE / n), `${ss.UNUSABLE} shipments`, 'var(--bad)')}
+    ${kpi('Input records', ov.events_received, `${rs.VALID} valid · ${rs.WARNING} warning · ${rs.REJECTED} rejected · ${rs.DUPLICATE} duplicate`, 'Every row (spreadsheet), object (JSON) or message (text) received across all files.')}
+    ${kpi('Shipments', ov.shipments, `${ov.usable_shipments} with at least one usable record`, 'Distinct shipment ids found in any record, including rejected ones.')}
+    ${kpi('Avg journey completeness', pct(ov.avg_completeness), `across all ${ov.shipments} shipments`, `Milestones present ÷ 6, averaged. Unusable shipments count as 0%.${d('D10')}`)}
+    ${kpi('Avg shipment quality score', ov.avg_score, `${ov.avg_score_usable} if the ${ss.UNUSABLE} unusable shipments are excluded`, `0–100. 50% completeness + 30% consistency + 20% record validity.${d('D14')}`)}
+    <div class="card kpi click" style="cursor:pointer;border-color:#e3b25a" onclick="show('shipments','contradictions')"><h3>Records contradict each other</h3><div class="v" style="color:var(--warn)">${ov.shipments_with_contradictions} <span class="small muted">shipments</span></div><div class="def">Same milestone reported with different times or locations, by two sources or twice by one source; conflicting carriers; or times out of order.${d('D08')} <b>Click to list them →</b></div></div>
+    ${kpi('Clean', `${ss.CLEAN} <span class="small muted">(${pct(100 * ss.CLEAN / n)})</span>`, '', STATUS_DEF.CLEAN + d('D13'), 'var(--ok)')}
+    ${kpi('Needs review', `${ss.NEEDS_REVIEW} <span class="small muted">(${pct(100 * ss.NEEDS_REVIEW / n)})</span>`, '', STATUS_DEF.NEEDS_REVIEW, 'var(--warn)')}
+    ${kpi('Unusable', `${ss.UNUSABLE} <span class="small muted">(${pct(100 * ss.UNUSABLE / n)})</span>`, '', STATUS_DEF.UNUSABLE, 'var(--bad)')}
   </div>
   <div class="grid two" style="margin-top:14px">
-    <div class="card"><h3>Milestone coverage across shipments</h3><canvas id="c1"></canvas></div>
-    <div class="card"><h3>Shipment status</h3><canvas id="c2"></canvas></div>
-    <div class="card"><h3>Issues by rule</h3><div class="scroll" style="max-height:300px"><table>
-      <tr><th>Rule</th><th>Count</th><th>What it means</th></tr>
-      ${Object.entries(ov.issues_by_rule).map(([c, v]) => `<tr class="click" onclick="show('issues','${c}')"><td>${ruleTag(c)}</td><td>${v}</td><td class="muted">${esc(RULES[c]?.impact)}</td></tr>`).join('')}
-    </table></div></div>
-    <div class="card"><h3>Journey state</h3><canvas id="c3"></canvas></div>
+    <div class="card"><h3>How many shipments reached each milestone</h3><canvas id="c1"></canvas>
+      <div class="note">A milestone counts if any source reported it with a usable record${d('D10')}. Out of ${ov.shipments} shipments.</div></div>
+    <div class="card"><h3>Journey state</h3><canvas id="c3"></canvas>
+      <div class="note">${Object.entries(JOURNEY_DEF).map(([k, v]) => `<b>${human(k).toLowerCase()}</b>: ${v}`).join(' · ')}. Missing milestones after the latest one are treated as "not yet happened"${d('D11')}.</div></div>
+    <div class="card" style="grid-column:1/-1"><h3>Issues found, by rule</h3><table>
+      <tr><th>Rule</th><th title="Record rules count affected input records; shipment rules count affected shipments. Each is counted once per rule.">Affects</th><th>What it means / impact</th></tr>
+      ${ov.issues_by_rule.map(i => `<tr class="click" onclick="show('issues','${i.code}')"><td>${ruleTag(i.code)}</td><td><b>${i.count}</b> ${i.count === 1 ? i.unit.slice(0, -1) : i.unit}</td><td class="muted">${esc(RULES[i.code]?.description)} ${esc(RULES[i.code]?.impact)}</td></tr>`).join('')}
+    </table><div class="note">Click a rule to see the affected records or shipments. Info-level rules (grey) do not change a shipment's status.</div></div>
   </div>`;
-  chart($('#c1'), { type: 'bar', data: { labels: MS, datasets: [{ label: 'Shipments with milestone', data: MS.map(m => ov.milestone_coverage[m]), backgroundColor: '#2457c5', borderRadius: 4 }] },
-    options: { plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => `${c.raw} of ${ov.shipments} shipments (${(100 * c.raw / n).toFixed(0)}%)` } } }, scales: { y: { beginAtZero: true, max: ov.shipments } } } });
-  chart($('#c2'), { type: 'doughnut', data: { labels: ['Clean', 'Needs review', 'Unusable'], datasets: [{ data: [ss.CLEAN, ss.NEEDS_REVIEW, ss.UNUSABLE], backgroundColor: ['#1f8a4c', '#d39b2f', '#c0392b'] }] }, options: { cutout: '62%', plugins: { legend: { position: 'right' } } } });
-  const js = ov.journey_state;
-  chart($('#c3'), { type: 'bar', data: { labels: Object.keys(js).map(k => k.replaceAll('_', ' ').toLowerCase()), datasets: [{ data: Object.values(js), backgroundColor: '#6b7a90', borderRadius: 4 }] }, options: { indexAxis: 'y', plugins: { legend: { display: false } } } });
+  chart($('#c1'), { type: 'bar', data: { labels: MS.map(m => MS_LABEL[m]), datasets: [{ label: 'Shipments', data: MS.map(m => ov.milestone_coverage[m]), backgroundColor: '#2457c5', borderRadius: 4 }] },
+    options: { plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => `${c.raw} of ${ov.shipments} shipments (${(100 * c.raw / n).toFixed(0)}%)` } } }, scales: { y: { beginAtZero: true, max: ov.shipments, title: { display: true, text: 'shipments' } } } } });
+  const js = ov.journey_state, order = ['COMPLETE', 'DELIVERED_WITH_GAPS', 'IN_PROGRESS', 'NO_DATA'];
+  chart($('#c3'), { type: 'bar', data: { labels: order.map(k => human(k).toLowerCase()), datasets: [{ data: order.map(k => js[k] || 0), backgroundColor: ['#1f8a4c', '#d39b2f', '#6b7a90', '#c0392b'], borderRadius: 4 }] },
+    options: { indexAxis: 'y', plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => `${c.raw} shipments` } } }, scales: { x: { title: { display: true, text: 'shipments' } } } } });
 }
-const kpi = (l, v, s, color) => `<div class="card kpi"><h3>${l}</h3><div class="v" style="${color ? 'color:' + color : ''}">${v}</div><div class="s">${s}</div></div>`;
 
 // ---------------------------------------------------------------- Sources
 async function sources() {
   const src = await get('/metrics/sources');
   const heat = (v) => `background: hsl(${Math.round(v * 1.2)}, 65%, ${92 - v * 0.1}%)`;
   $('#app').innerHTML = `
-  <div class="grid kpis">${src.map(s => `<div class="card kpi"><h3>${esc(s.display_name)}</h3><div class="v">${s.score}</div>
-    <div class="s">${s.records} records · ${s.shipments} shipments · priority ${s.priority}</div>
-    <div class="s" style="margin-top:6px">${pill('VALID')} ${s.status.VALID} ${pill('REJECTED')} ${s.status.REJECTED} ${pill('DUPLICATE')} ${s.status.DUPLICATE}</div></div>`).join('')}</div>
+  ${intro('Sources', 'How usable and trustworthy is the data from each system? Use this page to decide which system owner to approach first.',
+    `Source score = 50% validity + 20% field completeness + 15% uniqueness + 15% agreement with other sources.${d('D15')} The source each file belongs to is decided automatically${d('D03')}.`)}
+  <div class="grid kpis">${src.map(s => kpi(esc(s.display_name), s.score, `${s.records} records · ${s.shipments} shipments`,
+    `${pill('VALID')} ${s.status.VALID} · ${pill('WARNING')} ${s.status.WARNING} · ${pill('REJECTED')} ${s.status.REJECTED} · ${pill('DUPLICATE')} ${s.status.DUPLICATE}<br>Conflict priority: <b>${s.priority}</b> (1 = wins)${d('D07')}`)).join('')}</div>
+  <div class="card" style="margin-top:14px"><h3>How each source score is calculated</h3><table>
+    <tr><th>Source</th><th title="Average record credit: valid 1, warning 0.5, rejected 0. Duplicates excluded.">Validity × 0.5</th><th title="Average of the 5 field completeness values below">Field completeness × 0.2</th><th title="1 − share of records that were duplicates">Uniqueness × 0.15</th><th title="Share of milestones shared with another source where both agree (100% if no overlaps)">Agreement × 0.15</th><th>Score</th></tr>
+    ${src.map(s => { const b = s.score_breakdown; return `<tr><td><b>${s.source}</b></td><td>${pct(b.validity * 100)}</td><td>${pct(b.field_completeness * 100)}</td><td>${pct(b.uniqueness * 100)}</td><td>${pct(b.agreement * 100)} <span class="muted small">(${s.overlaps} overlap${s.overlaps === 1 ? '' : 's'})</span></td><td><b>${s.score}</b></td></tr>`; }).join('')}
+  </table></div>
   <div class="grid two" style="margin-top:14px">
-    <div class="card"><h3>Source score breakdown</h3><canvas id="c1"></canvas></div>
-    <div class="card"><h3>Field completeness (% of records)</h3><table class="heat">
-      <tr><th>Source</th>${Object.keys(src[0].field_completeness).map(k => `<th>${k}</th>`).join('')}</tr>
-      ${src.map(s => `<tr><td>${s.source}</td>${Object.values(s.field_completeness).map(v => `<td class="c" style="${heat(v)}">${v}</td>`).join('')}</tr>`).join('')}
-    </table>
-    <h3 style="margin-top:18px">Milestone × source coverage (usable events)</h3><table class="heat">
-      <tr><th>Source</th>${MS.map(m => `<th>${m}</th>`).join('')}</tr>
+    <div class="card"><h3>Field completeness (% of non-duplicate records)</h3><table class="heat">
+      <tr><th>Source</th>${Object.keys(src[0].field_completeness).map(k => `<th>${human(k)}</th>`).join('')}</tr>
+      ${src.map(s => `<tr><td>${s.source}</td>${Object.entries(s.field_completeness).map(([k, v]) => `<td class="c" style="${heat(v)}" title="${s.fields_never_supplied.includes(k) ? 'This source never supplies this field' : ''}">${v}${s.fields_never_supplied.includes(k) ? '<div class="small">not supplied</div>' : ''}</td>`).join('')}</tr>`).join('')}
+    </table><div class="note">"Timestamp" means a timestamp that could be parsed. A field a source never supplies counts as 0% and lowers its score${d('D15')}. Example: carrier messages carry no carrier code.</div></div>
+    <div class="card"><h3>Which milestones each source reports (usable records)</h3><table class="heat">
+      <tr><th>Source</th>${MS.map(m => `<th>${MS_LABEL[m]}</th>`).join('')}</tr>
       ${src.map(s => `<tr><td>${s.source}</td>${MS.map(m => `<td class="c" style="${s.milestones[m] ? 'background:#e6eefc' : 'color:#b5bdc9'}">${s.milestones[m]}</td>`).join('')}</tr>`).join('')}
-    </table></div>
-    <div class="card"><h3>Cross-source agreement</h3><table>
-      <tr><th>Source</th><th>Overlapping milestones</th><th>Agreement</th><th>Shipments in conflict</th><th>Golden events supplied</th></tr>
-      ${src.map(s => `<tr><td>${s.source}</td><td>${s.overlaps}</td><td>${pct(s.agreement_rate)}</td><td>${s.shipments_with_conflicts}</td><td>${s.golden_events}</td></tr>`).join('')}
-    </table><p class="muted">When sources disagree, the higher-priority source supplies the "golden" event; the others are kept as alternates and the conflict is flagged.</p></div>
+    </table><div class="note">No single source covers the whole journey. Shipments become complete only when sources are combined.</div></div>
+    <div class="card" style="grid-column:1/-1"><h3>Agreement between sources</h3><table>
+      <tr><th title="Milestones where this source and another both reported the same milestone for the same shipment">Overlapping milestones</th><th>Source</th><th>Agreement</th><th title="Shipments where this source was part of a timestamp or location conflict">Shipments in conflict</th><th title="Milestones where this source's value is the one shown on the shipment journey">Values used on journeys</th></tr>
+      ${src.map(s => `<tr><td>${s.overlaps}</td><td>${s.source}</td><td>${s.overlaps ? pct(s.agreement_rate) : '<span class="muted">no overlaps</span>'}</td><td>${s.shipments_with_conflicts}</td><td>${s.golden_events}</td></tr>`).join('')}
+    </table><div class="note">When sources disagree on a milestone, the higher-priority source's value is shown${d('D07')}. The other value is kept and flagged as a conflict if times differ by more than the tolerance or locations differ${d('D08')}. Some location conflicts may be transshipment stops${d('D09')}.</div></div>
   </div>`;
-  const keys = ['validity', 'field_completeness', 'uniqueness', 'agreement'];
-  chart($('#c1'), { type: 'bar', data: { labels: keys.map(k => k.replace('_', ' ')), datasets: src.map((s, i) => ({ label: s.source, data: keys.map(k => +(s.score_breakdown[k] * 100).toFixed(1)), backgroundColor: COLORS[i % 6], borderRadius: 3 })) },
-    options: { scales: { y: { beginAtZero: true, max: 100 } } } });
 }
 
 // ---------------------------------------------------------------- Shipments
-async function shipments() {
-  $('#app').innerHTML = `<div class="card"><div class="row">
-    <input id="q" placeholder="Search shipment id">
-    <select id="st"><option value="">All statuses</option><option>CLEAN</option><option>NEEDS_REVIEW</option><option>UNUSABLE</option></select>
-    <span class="muted" id="cnt"></span></div><div class="scroll" id="tbl"></div></div>`;
+const statusLegend = () => `<div class="legend">${Object.entries(STATUS_DEF).map(([k, v]) => `<div>${pill(k)} ${v}</div>`).join('')}</div>`;
+async function shipments(_, preset) {
+  $('#app').innerHTML = `
+  ${intro('Shipments', 'Every shipment with its consolidated journey. Click a row to see where each milestone came from and why.',
+    `<b>Status</b> is about data quality; <b>completeness</b> is about how far the journey is recorded. They are separate${d('D13')}.`)}
+  <div class="card"><div style="margin-bottom:12px">${statusLegend()}</div><div class="row">
+    <input id="q" placeholder="Search shipment id (e.g. SHP0001)">
+    <select id="st"><option value="">All statuses</option><option value="CLEAN">Clean</option><option value="NEEDS_REVIEW">Needs review</option><option value="UNUSABLE">Unusable</option></select>
+    <label class="muted"><input type="checkbox" id="ct" ${preset === 'contradictions' ? 'checked' : ''}> Only shipments whose records contradict each other${d('D08')}</label>
+    <span class="muted" id="cnt"></span></div><div id="tbl"></div></div>`;
   const load = async () => {
-    const q = $('#q').value, st = $('#st').value;
-    const rows = await get(`/shipments?${new URLSearchParams({ ...(q && { q }), ...(st && { status: st }) })}`);
-    $('#cnt').textContent = `${rows.length} shipments`;
-    $('#tbl').innerHTML = `<table><tr><th>Shipment</th><th>Status</th><th>Journey</th><th>Completeness</th><th>Score</th><th>Latest</th><th>Sources</th><th>Issues</th></tr>
+    const q = $('#q').value.trim(), st = $('#st').value, ct = $('#ct').checked;
+    const rows = await get(`/shipments?${new URLSearchParams({ ...(q && { q }), ...(st && { status: st }), ...(ct && { contradictions: 'true' }) })}`);
+    $('#cnt').textContent = `${rows.length} shipment${rows.length === 1 ? '' : 's'}`;
+    if (!rows.length) { $('#tbl').innerHTML = `<div class="empty">No shipment matches ${q ? `"<b>${esc(q)}</b>"` : 'this filter'}${st ? ` with status ${human(st)}` : ''}. Shipment ids come from the ingested files only (see the Ingest tab).</div>`; return; }
+    $('#tbl').innerHTML = `<table><tr><th>Shipment</th><th title="${esc(Object.entries(STATUS_DEF).map(([k, v]) => k + ': ' + v).join('\n'))}">Status</th><th title="Filled box = milestone present, in order Gate In → Delivered">Journey</th><th title="Milestones present ÷ 6">Completeness</th><th title="0–100 shipment quality score (see D14)">Score</th><th>Latest milestone</th><th title="Sources that sent at least one usable record for this shipment">Sources used</th><th title="Warning/error rules raised for this shipment">Issues</th></tr>
       ${rows.map(r => `<tr class="click" onclick="show('shipment','${r.shipment_id}')"><td><b>${r.shipment_id}</b></td><td>${pill(r.status)}</td>
-      <td><div class="steps">${MS.map(m => `<span class="${r.milestones.includes(m) ? 'on' : ''}" title="${m}"></span>`).join('')}</div></td>
-      <td>${pct(r.completeness)}</td><td>${r.score}</td><td>${r.latest_milestone || '—'}</td><td class="muted">${r.sources.join(', ')}</td>
-      <td>${r.issues.map(ruleTag).join(' ')}</td></tr>`).join('')}</table>`;
+      <td><div class="steps" title="${r.milestones.map(m => MS_LABEL[m]).join(', ') || 'none'}">${MS.map(m => `<span class="${r.milestones.includes(m) ? 'on' : ''}"></span>`).join('')}</div><div class="small muted">${human(r.journey).toLowerCase()}</div></td>
+      <td>${pct(r.completeness)} <span class="muted small">(${r.milestones.length}/6)</span></td><td>${r.score}</td><td>${r.latest_milestone ? MS_LABEL[r.latest_milestone] : '—'}${r.contradictions ? `<div class="pill CONFLICT" style="margin-top:3px">⚠ ${r.contradictions} contradiction${r.contradictions > 1 ? 's' : ''}</div>` : ''}</td>
+      <td class="muted">${r.usable_sources.join(', ') || '<i>none usable</i>'}</td><td>${r.issues.map(ruleTag).join(' ')}</td></tr>`).join('')}</table>`;
   };
-  $('#q').oninput = load; $('#st').onchange = load; load();
+  $('#q').oninput = load; $('#st').onchange = load; $('#ct').onchange = load; load();
 }
+
 async function shipment(_, id) {
-  current = 'shipments'; nav();
-  const d = await get('/shipments/' + id);
-  const rec = (r) => `<div><span class="src">${esc(r.source)}</span> ${fmt(r.event_ts)}<br>${esc(r.location || 'no location')}${r.carrier ? ' · ' + esc(r.carrier) : ''}
-    <pre title="${esc(r.file)} ${esc(r.locator)}">${esc(r.file)} · ${esc(r.locator)}\n${esc(typeof r.raw === 'string' ? r.raw : JSON.stringify(r.raw))}</pre></div>`;
-  const b = d.score_breakdown;
+  let dt;
+  try { dt = await get('/shipments/' + encodeURIComponent(id)); } catch (e) { $('#app').innerHTML = `<span class="back" onclick="show('shipments')">← All shipments</span><div class="card empty">${esc(e.message)}</div>`; return; }
+  const src = (r) => `<span class="src">${esc(r.source)}</span>`;
+  const recBox = (r) => `<div>${fmt(r.event_ts)} UTC<br>${esc(r.location || 'no location')}${r.carrier ? ' · ' + esc(r.carrier) : ''}
+    <pre>${esc(r.file)} · ${esc(r.locator)}\n${esc(raw(r))}</pre></div>`;
+  const byS = Object.entries(dt.records_by_source).map(([k, v]) => `${k}: ${v}`).join(' · ');
   $('#app').innerHTML = `<span class="back" onclick="show('shipments')">← All shipments</span>
-  <div class="grid kpis">${kpi(d.shipment_id, pill(d.status), d.journey.replaceAll('_', ' ').toLowerCase())}
-    ${kpi('Completeness', pct(d.completeness), `${d.milestones.length} of 6 milestones`)}
-    ${kpi('Quality score', d.score, b.completeness !== undefined ? `completeness ${b.completeness} · consistency ${b.consistency} · validity ${b.validity}` : '')}
-    ${kpi('Sources', d.sources.length, d.sources.join(', '))}</div>
-  <div class="card" style="margin-top:14px"><h3>Consolidated milestone journey</h3><div class="timeline">
-    ${d.timeline.map(t => `<div class="ms ${t.golden ? '' : 'missing'}"><b>${t.label}</b>${t.golden ? rec(t.golden) : 'Not reported by any source'}
-      ${t.alternates.map(a => `<div class="alt">Also reported:${rec(a)}</div>`).join('')}</div>`).join('')}
-  </div></div>
+  <div class="grid kpis">
+    ${kpi('Shipment', dt.shipment_id, '', pill(dt.status))}
+    ${kpi('Completeness', pct(dt.completeness), `${dt.milestones.length} of 6 milestones · ${human(dt.journey).toLowerCase()}`, `Milestones present ÷ 6${d('D10')}`)}
+    ${kpi('Quality score', dt.score, '', `See formula below${d('D14')}`)}
+    ${kpi('Sources', dt.usable_sources.length, dt.usable_sources.join(', ') || 'none usable', `Sources with at least one usable record. Records received: ${byS}`)}
+  </div>
+  <div class="reason ${dt.status}"><b>Why ${human(dt.status).toLowerCase()}?</b> ${esc(dt.status_reason)}</div>
+  <div class="formula">Score: ${esc(dt.score_formula)}</div>
+  ${(() => { const cs = dt.issue_details.filter(i => CONTRA.includes(i.code)); return cs.length ? `<div class="callout" style="margin-top:14px"><b>⚠ ${cs.length} contradiction${cs.length > 1 ? 's' : ''} between input records</b>${d('D08')}. The value shown on the journey follows source priority${d('D07')}; verify with the source owners.<ul style="margin:6px 0 0;padding-left:18px">${cs.map(i => `<li>${ruleTag(i.code)} ${esc(i.message)}</li>`).join('')}</ul></div>` : ''; })()}
+  <div class="card" style="margin-top:14px"><h3>Consolidated journey: the value shown for each milestone, and why</h3>
+    <div class="timeline">${dt.timeline.map(t => `<div class="ms ${t.golden ? '' : 'missing'}"><div class="t" title="${esc(t.description)}">${t.label}</div>
+      ${t.golden ? `<div>${pill('USED', 'This value is shown on the journey')} ${src(t.golden)}</div><div class="why">${esc(t.choice_reason)}${t.alternates.length ? d('D07') : ''}</div>${recBox(t.golden)}`
+        : `<div class="why">Not reported by any source (no usable record).</div>`}
+      ${t.alternates.map(a => `<div class="alt ${a.role === 'CONFLICT' ? 'conflict' : ''}">${pill(a.role === 'CONFLICT' ? 'CONFLICT' : 'NOT USED')} ${src(a)}<div class="why">${esc(a.explanation)}${a.role === 'CONFLICT' ? d('D08') : ''}</div>${recBox(a)}</div>`).join('')}
+    </div>`).join('')}</div>
+  </div>
   <div class="grid two" style="margin-top:14px">
-    <div class="card"><h3>Issues</h3>${d.issue_details.length ? `<table>${d.issue_details.map(i => `<tr><td>${ruleTag(i.code)}</td><td>${esc(i.message)}</td></tr>`).join('')}</table>` : '<p class="muted">No issues — clean.</p>'}</div>
-    <div class="card"><h3>All input records (lineage)</h3><div class="scroll" style="max-height:340px"><table>
-      <tr><th>Status</th><th>Source</th><th>Raw milestone</th><th>Raw time</th><th>Where</th></tr>
-      ${d.records.map(r => `<tr><td>${pill(r.status)}</td><td>${r.source}</td><td>${esc(r.milestone_raw)} → ${r.milestone || '?'}</td><td>${esc(r.timestamp_raw || '—')}</td><td class="muted">${esc(r.file)} · ${esc(r.locator)}${r.issues.length ? '<br>' + r.issues.map(i => ruleTag(i.code)).join(' ') : ''}</td></tr>`).join('')}
-    </table></div></div>
+    <div class="card"><h3>Issues for this shipment</h3>${dt.issue_details.length ? `<table>${dt.issue_details.map(i => `<tr><td>${ruleTag(i.code)}</td><td>${esc(i.message)}</td></tr>`).join('')}</table>` : '<p class="muted">No issues.</p>'}
+      <div class="note">Info-level issues (grey) are context only and do not affect the status.</div></div>
+    <div class="card"><h3>Every input record for this shipment (${dt.records.length})</h3><div class="small muted" style="margin-bottom:6px">By source: ${byS}</div><table>
+      <tr><th title="USED = shown on the journey · NOT USED = duplicate or lower-priority agreeing value · CONFLICT = disagrees with the value used · REJECTED = failed record checks">Role</th><th>Source</th><th title="Raw value in the file → canonical milestone (D01)">Milestone</th><th>Raw time</th><th>Why</th><th>Where in the file</th></tr>
+      ${dt.records.map(r => `<tr><td>${pill(r.role.replace(' ', '_'), '')}</td><td>${r.source}</td><td>${esc(r.milestone_raw)} → ${r.milestone ? MS_LABEL[r.milestone] : '<b>unknown</b>'}</td><td>${esc(r.timestamp_raw || '—')}</td><td class="small">${esc(r.explanation)}</td><td class="muted small">${esc(r.file)} · ${esc(r.locator)}</td></tr>`).join('')}
+    </table></div>
   </div>`;
 }
 
 // ---------------------------------------------------------------- Issues
 async function issues(_, rule) {
-  $('#app').innerHTML = `<div class="card"><div class="row">
-    <select id="fs"><option value="">Rejected / warning / duplicate</option><option>REJECTED</option><option>WARNING</option><option>DUPLICATE</option></select>
-    <select id="fr"><option value="">Any rule</option>${Object.values(RULES).map(r => `<option value="${r.code}">${r.code} ${r.name}</option>`).join('')}</select>
-    <span class="muted" id="cnt"></span></div><div class="scroll" id="tbl"></div></div>`;
+  $('#app').innerHTML = `
+  ${intro('Data Issues', 'Records that were rejected, flagged or ignored, and shipments flagged by shipment-level rules, each with the exact input it came from.',
+    `Rejected = unusable${d('D05')} · Warning = usable but needs attention · Duplicate = repeat from the same source, ignored${d('D06')}.`)}
+  <div class="card"><div class="row">
+    <select id="fs"><option value="">All non-valid records</option><option value="REJECTED">Rejected</option><option value="WARNING">Warning</option><option value="DUPLICATE">Duplicate</option></select>
+    <select id="fr"><option value="">Any rule</option>${Object.values(RULES).map(r => `<option value="${r.code}">${r.code} ${human(r.name)} (${r.level})</option>`).join('')}</select>
+    <span class="muted" id="cnt"></span></div><div id="tbl"></div></div>`;
   if (rule) $('#fr').value = rule;
   const load = async () => {
     const st = $('#fs').value, ru = $('#fr').value;
     if (ru && RULES[ru]?.level === 'shipment') {
+      $('#fs').disabled = true;
       const rows = (await get('/shipments')).filter(r => r.issues.includes(ru) || r.info.includes(ru));
-      $('#cnt').textContent = `${rows.length} shipments flagged by ${ru}`;
-      $('#tbl').innerHTML = `<table><tr><th>Shipment</th><th>Status</th><th>Completeness</th><th>Issues</th></tr>${rows.map(r => `<tr class="click" onclick="show('shipment','${r.shipment_id}')"><td><b>${r.shipment_id}</b></td><td>${pill(r.status)}</td><td>${pct(r.completeness)}</td><td>${r.issues.map(ruleTag).join(' ')}</td></tr>`).join('')}</table>`;
+      $('#cnt').innerHTML = `<b>${rows.length}</b> shipments flagged by ${ruleTag(ru)}: ${esc(RULES[ru].description)}`;
+      $('#tbl').innerHTML = rows.length ? `<table><tr><th>Shipment</th><th>Status</th><th>Completeness</th><th>Why</th></tr>${rows.map(r => `<tr class="click" onclick="show('shipment','${r.shipment_id}')"><td><b>${r.shipment_id}</b></td><td>${pill(r.status)}</td><td>${pct(r.completeness)}</td><td class="small">${esc(r.status_reason)}</td></tr>`).join('')}</table>` : '<div class="empty">No shipments flagged by this rule.</div>';
       return;
     }
+    $('#fs').disabled = false;
     let rows = await get(`/records?${new URLSearchParams({ ...(st && { status: st }), ...(ru && { rule: ru }) })}`);
-    if (!st) rows = rows.filter(r => r.status !== 'VALID');
-    $('#cnt').textContent = `${rows.length} records`;
-    $('#tbl').innerHTML = `<table><tr><th>Status</th><th>Source</th><th>File / position</th><th>Shipment</th><th>Issues</th><th>Raw input</th></tr>
+    if (!st && !ru) rows = rows.filter(r => r.status !== 'VALID');
+    $('#cnt').innerHTML = `<b>${rows.length}</b> records${ru ? ` flagged by ${ruleTag(ru)}` : ''}`;
+    $('#tbl').innerHTML = rows.length ? `<table><tr><th>Status</th><th>Source</th><th>File / position</th><th>Shipment</th><th>Issues</th><th>Raw input (exactly as received)</th></tr>
       ${rows.map(r => `<tr><td>${pill(r.status)}</td><td>${r.source}</td><td class="muted">${esc(r.file)}<br>${esc(r.locator)}</td><td>${r.shipment_id ? `<a href="#" onclick="show('shipment','${r.shipment_id}');return false">${r.shipment_id}</a>` : '—'}</td>
-      <td>${r.issues.map(i => `${ruleTag(i.code)}<div class="muted">${esc(i.message)}</div>`).join('')}</td><td><pre>${esc(typeof r.raw === 'string' ? r.raw : JSON.stringify(r.raw))}</pre></td></tr>`).join('')}</table>`;
+      <td>${r.issues.map(i => `${ruleTag(i.code)}<div class="muted small">${esc(i.message)}</div>`).join('')}</td><td><pre>${esc(raw(r))}</pre></td></tr>`).join('')}</table>` : '<div class="empty">No records match this filter.</div>';
   };
   $('#fs').onchange = load; $('#fr').onchange = load; load();
 }
@@ -234,80 +312,130 @@ async function issues(_, rule) {
 async function trends() {
   const [t, camps, src] = await Promise.all([get('/metrics/trends'), get('/campaigns'), get('/metrics/sources')]);
   $('#app').innerHTML = `
+  ${intro('Trends & Campaigns', 'Is data quality improving over time, and did an improvement campaign with a system owner make a difference?',
+    `Data is grouped by the <b>week the event happened</b> (ISO week, UTC), not the upload date${d('D16')}. Campaign start dates appear as red dashed lines.`)}
   <div class="grid two">
-    <div class="card"><h3>Shipment cohort quality by week (first event)</h3><canvas id="c1"></canvas></div>
-    <div class="card"><h3>Record validity by source and week</h3><canvas id="c2"></canvas></div>
+    <div class="card"><h3>Shipment quality by week the shipment started</h3><canvas id="c1"></canvas>
+      <div class="note">Each point = shipments whose first event fell in that week. <b>Caution:</b> recent weeks look less complete partly because those shipments have not finished their journey yet${d('D17')}.</div></div>
+    <div class="card"><h3>Record validity per source, by week</h3><canvas id="c2"></canvas>
+      <div class="note">Validity = average record credit (valid 100%, warning 50%, rejected 0%; duplicates excluded). Records without a usable time are placed in the week of the latest event in the same file${d('D16')}. Hover a point to see how many records it is based on.</div></div>
   </div>
   <div class="card" style="margin-top:14px"><h3>Improvement campaigns</h3>
-    <div class="row"><input id="cn" placeholder="Campaign name" value="Carrier data capture drive">
+    <p class="muted" style="margin-top:0">Record a campaign (e.g. "carrier team must always send timestamps") with the source it targets and its start date. The table compares that source's records before and after the start date${d('D18')}.</p>
+    <div class="row"><input id="cn" placeholder="Campaign name" style="min-width:240px">
       <select id="cs"><option value="">All sources</option>${src.map(s => `<option>${s.source}</option>`).join('')}</select>
-      <label class="muted">Start <input type="date" id="cd" value="${t.weeks.length ? weekToDate(t.weeks[Math.floor(t.weeks.length / 2)]) : ''}"></label>
-      <button class="btn primary" id="cadd">Add campaign</button></div>
-    ${camps.length ? `<table><tr><th>Campaign</th><th>Source</th><th>Start</th><th>Records before → after</th><th>Validity</th><th>Rejected</th><th>Location completeness</th><th>Duplicates</th><th></th></tr>
-      ${camps.map(c => { const i = c.impact; return `<tr><td><b>${esc(c.name)}</b></td><td>${c.source || 'All'}</td><td>${c.start_date}</td><td>${i.before.records} → ${i.after.records}</td>
+      <label class="muted">Start date <input type="date" id="cd" value="${t.weeks.length ? weekToDate(t.weeks[Math.floor(t.weeks.length / 2)]) : ''}"></label>
+      <button class="btn primary" id="cadd">Add campaign</button><span id="cmsg" class="muted"></span></div>
+    ${camps.length ? `<table><tr><th>Campaign</th><th>Target source</th><th>Start</th><th title="Number of non-duplicate records in each period. Small numbers = unreliable comparison.">Records before → after</th><th title="Higher is better">Validity</th><th title="Lower is better">Rejected %</th><th title="Higher is better">Location filled %</th><th title="Lower is better">Duplicates %</th><th></th></tr>
+      ${camps.map(c => { const i = c.impact; return `<tr><td><b>${esc(c.name)}</b></td><td>${c.source || 'All'}</td><td>${c.start_date}</td><td>${i.before.records} → ${i.after.records}${(i.before.records < 30 || i.after.records < 30) ? '<div class="small" style="color:var(--warn)">small sample: read with care</div>' : ''}</td>
       ${['validity', 'rejected_pct', 'location_completeness', 'duplicate_pct'].map((k, j) => cell(i, k, j === 1 || j === 3)).join('')}
-      <td><button class="btn" onclick="delCampaign(${c.id})">Remove</button></td></tr>`; }).join('')}</table>`
-      : '<p class="muted">No campaigns yet. Add one to compare data quality before vs after its start date; it is also marked on the charts.</p>'}
+      <td><button class="btn" onclick="delCampaign(${c.id})">Remove</button></td></tr>`; }).join('')}</table>
+      <div class="note">Green = improved after the start date, red = worsened. Campaigns are kept in memory and disappear on server restart${d('D19')}.</div>`
+      : '<div class="empty">No campaigns yet.</div>'}
   </div>`;
-  const marker = { id: 'm', afterDraw(ch) { camps.forEach(c => { const wk = dateToWeek(c.start_date); const x = ch.scales.x.getPixelForValue(t.weeks.indexOf(wk) >= 0 ? t.weeks.indexOf(wk) : ch.scales.x.getLabels?.().indexOf(wk)); if (x == null || isNaN(x)) return; const g = ch.ctx; g.save(); g.strokeStyle = '#c0392b'; g.setLineDash([4, 4]); g.beginPath(); g.moveTo(x, ch.chartArea.top); g.lineTo(x, ch.chartArea.bottom); g.stroke(); g.fillStyle = '#c0392b'; g.font = '11px sans-serif'; g.fillText(c.name, x + 4, ch.chartArea.top + 12); g.restore(); }); } };
+  const marker = { id: 'm', afterDraw(ch) {
+    const labels = ch.data.labels;
+    camps.forEach(c => {
+      const idx = labels.indexOf(dateToWeek(c.start_date)); if (idx < 0) return;
+      const x = ch.scales.x.getPixelForValue(idx), g = ch.ctx; g.save(); g.strokeStyle = '#c0392b'; g.setLineDash([4, 4]); g.beginPath(); g.moveTo(x, ch.chartArea.top); g.lineTo(x, ch.chartArea.bottom); g.stroke();
+      g.fillStyle = '#c0392b'; g.font = '11px sans-serif'; g.fillText(c.name, x + 4, ch.chartArea.top + 12); g.restore();
+    });
+  } };
   chart($('#c1'), { type: 'line', plugins: [marker], data: { labels: t.shipments.map(s => s.week), datasets: [
     { label: 'Avg completeness %', data: t.shipments.map(s => s.avg_completeness), borderColor: COLORS[0], tension: .25 },
     { label: 'Avg quality score', data: t.shipments.map(s => s.avg_score), borderColor: COLORS[2], tension: .25 },
-    { label: 'Clean %', data: t.shipments.map(s => s.clean_pct), borderColor: COLORS[1], tension: .25 }] }, options: { scales: { y: { beginAtZero: true, max: 100 } } } });
-  chart($('#c2'), { type: 'line', plugins: [marker], data: { labels: t.weeks, datasets: Object.entries(t.sources).map(([s, pts], i) => ({ label: s, data: t.weeks.map(w => pts.find(p => p.week === w)?.validity ?? null), borderColor: COLORS[i % 6], spanGaps: true, tension: .25 })) }, options: { scales: { y: { beginAtZero: true, max: 100 } } } });
+    { label: 'Clean %', data: t.shipments.map(s => s.clean_pct), borderColor: COLORS[1], tension: .25 }] },
+    options: { scales: { y: { beginAtZero: true, max: 100 } }, plugins: { tooltip: { callbacks: { footer: (items) => `${t.shipments[items[0].dataIndex].shipments} shipments started this week` } } } } });
+  const series = Object.entries(t.sources);
+  chart($('#c2'), { type: 'line', plugins: [marker], data: { labels: t.weeks, datasets: series.map(([s, pts], i) => ({ label: s, data: t.weeks.map(w => pts.find(p => p.week === w)?.validity ?? null), borderColor: COLORS[i % 6], spanGaps: true, tension: .25 })) },
+    options: { scales: { y: { beginAtZero: true, max: 100, title: { display: true, text: 'validity %' } } }, plugins: { tooltip: { callbacks: { afterLabel: (c) => { const p = series[c.datasetIndex][1].find(x => x.week === t.weeks[c.dataIndex]); return p ? `${p.records} records, ${p.rejected} rejected` : ''; } } } } } });
   $('#cadd').onclick = async () => {
-    await fetch(API + '/campaigns', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: $('#cn').value, source: $('#cs').value || null, start_date: $('#cd').value }) });
+    if (!$('#cn').value.trim() || !$('#cd').value) { $('#cmsg').textContent = 'Enter a name and a start date.'; return; }
+    await fetch(API + '/campaigns', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: $('#cn').value.trim(), source: $('#cs').value || null, start_date: $('#cd').value }) });
     show('trends');
   };
 }
 function cell(i, k, lowerIsBetter) {
-  if (!i.before.records || !i.after.records) return '<td class="muted">n/a</td>';
-  const d = i.delta[k], good = lowerIsBetter ? d < 0 : d > 0;
-  return `<td>${i.before[k]} → ${i.after[k]} <span class="delta ${d === 0 ? '' : good ? 'up' : 'down'}">(${d > 0 ? '+' : ''}${d})</span></td>`;
+  if (!i.before.records || !i.after.records) return `<td class="muted" title="No records on one side of the start date">n/a</td>`;
+  const dv = i.delta[k], good = lowerIsBetter ? dv < 0 : dv > 0;
+  return `<td>${i.before[k]} → ${i.after[k]} <span class="delta ${dv === 0 ? '' : good ? 'up' : 'down'}">(${dv > 0 ? '+' : ''}${dv})</span></td>`;
 }
 async function delCampaign(id) { await fetch(API + '/campaigns/' + id, { method: 'DELETE' }); show('trends'); }
-function weekToDate(w) { const [y, wk] = w.split('-W').map(Number); const d = new Date(Date.UTC(y, 0, 4)); d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7) + (wk - 1) * 7); return d.toISOString().slice(0, 10); }
-function dateToWeek(s) { const d = new Date(s + 'T00:00:00Z'); const t = new Date(d); t.setUTCDate(d.getUTCDate() + 3 - ((d.getUTCDay() + 6) % 7)); const y = t.getUTCFullYear(); const w1 = new Date(Date.UTC(y, 0, 4)); const wk = 1 + Math.round(((t - w1) / 864e5 - 3 + ((w1.getUTCDay() + 6) % 7)) / 7); return `${y}-W${String(wk).padStart(2, '0')}`; }
+function weekToDate(w) { const [y, wk] = w.split('-W').map(Number); const dt = new Date(Date.UTC(y, 0, 4)); dt.setUTCDate(dt.getUTCDate() - ((dt.getUTCDay() + 6) % 7) + (wk - 1) * 7); return dt.toISOString().slice(0, 10); }
+function dateToWeek(s) { const dt = new Date(s + 'T00:00:00Z'); const th = new Date(dt); th.setUTCDate(dt.getUTCDate() + 3 - ((dt.getUTCDay() + 6) % 7)); const y = th.getUTCFullYear(); const jan4 = new Date(Date.UTC(y, 0, 4)); const wk1 = new Date(jan4); wk1.setUTCDate(jan4.getUTCDate() - ((jan4.getUTCDay() + 6) % 7)); const wk = 1 + Math.floor((th - wk1) / (7 * 864e5)); return `${y}-W${String(wk).padStart(2, '0')}`; }
 
 // ---------------------------------------------------------------- Ingest
 async function ingest() {
   const runs = await get('/runs');
   $('#app').innerHTML = `
+  ${intro('Ingest', 'Add data from any source system. Spreadsheets (.xlsx), CSV, JSON / NDJSON and free-text messages (.txt) are supported.',
+    `The format, the header row, the column meanings${d('D01')} and the source system${d('D03')} are detected automatically and shown below for every file. Uploading the identical file twice is skipped${d('D20')}.`)}
   <div class="card"><h3>Upload source files</h3>
-    <div class="drop" id="drop">Drop .xlsx, .csv, .json, .ndjson or .txt files here, or <label style="color:var(--accent);cursor:pointer"><u>browse</u><input type="file" id="file" multiple hidden></label>
-      <div style="margin-top:10px"><input id="srcov" placeholder="Source name (optional — auto-detected)"></div></div>
+    <div class="drop" id="drop">Drop files here, or <label style="color:var(--accent);cursor:pointer"><u>browse</u><input type="file" id="file" multiple hidden></label>
+      <div style="margin-top:10px"><input id="srcov" placeholder="Source name (optional)" title="Leave empty to detect automatically. Type a name to force all records in the file to that source."></div></div>
     <div class="row" style="margin-top:10px"><button class="btn" onclick="loadSamples()">Load provided sample files</button>
       <button class="btn" onclick="resetAll()">Reset all data</button><span id="msg" class="muted"></span></div></div>
-  <div class="card" style="margin-top:14px"><h3>Ingestion runs</h3><table>
-    <tr><th>File</th><th>Format</th><th>Source (how resolved)</th><th>Received</th><th>Valid</th><th>Warning</th><th>Rejected</th><th>Duplicate</th><th>Column mapping / notes</th></tr>
-    ${runs.map(r => `<tr><td><b>${esc(r.filename)}</b><div class="muted">${fmt(r.started_at)}</div></td><td>${r.format}</td><td>${r.source}<div class="muted">${r.source_resolution}</div></td>
+  <div class="card" style="margin-top:14px"><h3>Files ingested (newest first)</h3>${runs.length ? `<table>
+    <tr><th>File</th><th>Format</th><th title="Which source system the records were assigned to, and which rule decided it (D03)">Source · decided by</th><th>Records</th><th>Valid</th><th>Warning</th><th>Rejected</th><th>Duplicate</th><th title="How the file's columns/fields were interpreted">Column → meaning</th><th>Notes</th></tr>
+    ${runs.map(r => `<tr><td><b>${esc(r.filename)}</b><div class="muted small">${fmt(r.started_at)} UTC</div></td><td>${r.format}</td><td>${r.source}<div class="muted small">${esc(r.source_resolution)}</div></td>
       <td>${r.counts.received}</td><td>${r.counts.VALID || 0}</td><td>${r.counts.WARNING || 0}</td><td>${r.counts.REJECTED || 0}</td><td>${r.counts.DUPLICATE || 0}</td>
-      <td class="muted">${Object.entries(r.column_mapping).map(([a, b]) => `${esc(a)} → ${b}`).join(', ')}${r.notes.length ? '<br>' + r.notes.map(esc).join('<br>') : ''}</td></tr>`).join('') || '<tr><td colspan="9" class="muted">No runs yet</td></tr>'}
-  </table></div>`;
+      <td class="small">${Object.entries(r.column_mapping).map(([a, b]) => `${esc(a)} → <b>${b}</b>`).join('<br>') || '<span class="muted">text patterns (see config)</span>'}</td><td class="muted small">${r.notes.map(esc).join('<br>')}</td></tr>`).join('')}
+  </table>` : '<div class="empty">No files ingested yet.</div>'}</div>`;
   const drop = $('#drop');
   const send = async (files) => {
     const fd = new FormData(); [...files].forEach(f => fd.append('files', f)); if ($('#srcov').value) fd.append('source', $('#srcov').value);
     $('#msg').textContent = 'Uploading…';
     const r = await fetch(API + '/ingest', { method: 'POST', body: fd }); const j = await r.json();
     if (!r.ok) { $('#msg').textContent = j.error?.message || 'Upload failed'; return; }
-    $('#msg').textContent = j.map(x => `${x.filename}: ${x.status === 'COMPLETED' ? x.counts.received + ' records' : 'already ingested (skipped)'}`).join(' · ');
-    setTimeout(() => show('ingest'), 1200);
+    $('#msg').textContent = j.map(x => `${x.filename}: ${x.status === 'COMPLETED' ? x.counts.received + ' records ingested' : 'identical file already ingested, skipped'}`).join(' · ');
+    setTimeout(() => show('ingest'), 1500);
   };
   $('#file').onchange = (e) => send(e.target.files);
   drop.ondragover = (e) => { e.preventDefault(); drop.classList.add('over'); };
   drop.ondragleave = () => drop.classList.remove('over');
   drop.ondrop = (e) => { e.preventDefault(); drop.classList.remove('over'); send(e.dataTransfer.files); };
 }
-async function resetAll() { if (confirm('Delete all ingested data?')) { await fetch(API + '/admin/reset', { method: 'POST' }); show('ingest'); } }
+async function resetAll() { if (confirm('Delete all ingested data and campaigns?')) { await fetch(API + '/admin/reset', { method: 'POST' }); show('ingest'); } }
 
 // ---------------------------------------------------------------- Rules
 async function rulesView() {
-  $('#app').innerHTML = `<div class="card"><h3>Data quality rule catalog</h3><table><tr><th>Code</th><th>Level</th><th>Severity</th><th>Description</th><th>Impact</th></tr>
-    ${Object.values(RULES).map(r => `<tr><td><b>${r.code}</b> ${r.name}</td><td>${r.level}</td><td>${pill(r.severity)}</td><td>${esc(r.description)}</td><td class="muted">${esc(r.impact)}</td></tr>`).join('')}</table>
-    <p class="muted">Shipment score = 50% completeness + 30% consistency (sequence & cross-source agreement) + 20% record validity. Weights and thresholds live in <code>backend/config/quality.yaml</code>.</p></div>`;
+  const lvl = (l) => Object.values(RULES).filter(r => r.level === l).map(r => `<tr><td><b>${r.code}</b></td><td>${human(r.name)}</td><td>${pill(r.severity, r.severity === 'ERROR' ? 'Record rejected / shipment unusable' : r.severity === 'WARNING' ? 'Shipment needs review' : 'Context only')}</td><td>${esc(r.description)}</td><td class="muted">${esc(r.impact)}</td></tr>`).join('');
+  $('#app').innerHTML = `
+  ${intro('Rules', 'Every check the system runs. Record rules (R) check each input row; shipment rules (S) check the consolidated journey.',
+    'ERROR = record rejected / shipment unusable · WARNING = shipment needs review · INFO = context only, no effect on status.')}
+  <div class="card"><h3>Record-level rules</h3><table><tr><th>Code</th><th>Name</th><th>Severity</th><th>Check</th><th>Impact</th></tr>${lvl('record')}</table></div>
+  <div class="card" style="margin-top:14px"><h3>Shipment-level rules</h3><table><tr><th>Code</th><th>Name</th><th>Severity</th><th>Check</th><th>Impact</th></tr>${lvl('shipment')}</table></div>`;
 }
 
-(async () => { (await get('/rules')).forEach(r => RULES[r.code] = r); show('overview'); })();
+// ---------------------------------------------------------------- Decisions
+async function decisions(_, focus) {
+  const list = Object.values(DEC), areas = [...new Set(list.map(x => x.area))];
+  const val = (v) => typeof v === 'string' ? esc(v) : `<pre>${esc(JSON.stringify(v, null, 1))}</pre>`;
+  $('#app').innerHTML = `
+  ${intro('Decisions & Assumptions', 'Every interpretation this system makes that is not dictated by the raw data, with the value currently in effect, why, and where it can be changed.',
+    'Values are read live from the configuration, so this page always matches what the numbers are based on.')}
+  <div class="card"><h3>Glossary</h3><div class="legend">
+    <div><b>Record</b>: one row (spreadsheet), object (JSON) or message (text) in an input file.</div>
+    <div><b>Source</b>: the system a file came from (system feed, ops upload, carrier...).</div>
+    <div><b>Milestone</b>: one of the 6 journey steps: Gate In, Loaded, Departed, Arrived, Discharged, Delivered.</div>
+    <div><b>Used value</b>: the record shown on a shipment's journey for a milestone (one per milestone).</div>
+    <div><b>Conflict</b>: two sources disagree on a milestone's time (beyond tolerance) or location.</div>
+    <div><b>Data as-of</b>: the latest valid event time in all data; the reference point for "stale".</div>
+    <div><b>Completeness</b>: milestones present ÷ 6.</div><div><b>Quality score</b>: 0–100 blend of completeness, consistency and validity.</div>
+  </div><div style="margin-top:10px">${pill('Assumption')} needs business confirmation · ${pill('Design choice')} deliberate rule · ${pill('Known limitation')} not yet handled</div></div>
+  ${areas.map(a => `<div class="card" style="margin-top:14px"><h3>${a}</h3>${list.filter(x => x.area === a).map(x => `
+    <div class="dec-item" id="${x.id}"><h4>${x.id} · ${esc(x.title)} ${pill(x.type)}${x.confirm ? ' <span class="pill Assumption">confirm with business</span>' : ''}</h4>
+      <div class="kv"><b>What we do</b><div>${esc(x.decision)}</div><b>Why</b><div class="muted">${esc(x.rationale)}</div>
+      <b>Current value</b><div>${val(x.current_value)}</div><b>Change it in</b><div><code>${esc(x.change)}</code></div></div></div>`).join('')}</div>`).join('')}`;
+  if (focus) { const el = document.getElementById(focus); if (el) { el.classList.add('hl'); setTimeout(() => el.scrollIntoView({ block: 'center' }), 50); } }
+}
+
+(async () => {
+  const [rules, decs] = await Promise.all([get('/rules'), get('/decisions')]);
+  rules.forEach(r => RULES[r.code] = r); decs.forEach(x => DEC[x.id] = x);
+  const [t, a] = location.hash.slice(1).split('/');
+  show(t && (t in TABS || t === 'shipment') ? t : 'overview', a ? decodeURIComponent(a) : undefined);
+})();
 </script>
 </body>
 </html>
