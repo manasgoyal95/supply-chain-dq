@@ -1,34 +1,19 @@
-"""Application settings (environment) and domain configuration (YAML).
+"""Domain configuration (YAML).
 
-Environment settings control *infrastructure* (DB URL, CORS, paths). YAML files under ``config/``
-control *business behaviour* (milestone aliases, source registry, quality thresholds) so that product
-owners can tune rules without a code change.
+YAML files under ``config/`` control *business behaviour* (milestone aliases, source registry, quality thresholds) so that product
+owners can tune rules without a code change. Infrastructure settings live in ``settings.py``.
 """
 
 from __future__ import annotations
 
+import os
 from functools import lru_cache
 from pathlib import Path
 
 import yaml
 from pydantic import BaseModel, Field, model_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BACKEND_DIR = Path(__file__).resolve().parents[2]
-
-
-class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="SCDQ_", env_file=".env", extra="ignore")
-
-    app_name: str = "Supply Chain Data Quality"
-    environment: str = "local"
-    database_url: str = f"sqlite:///{BACKEND_DIR / 'scdq.db'}"
-    config_dir: Path = BACKEND_DIR / "config"
-    static_dir: Path = BACKEND_DIR / "static"
-    cors_origins: list[str] = ["http://localhost:5173", "http://127.0.0.1:5173"]
-    max_upload_mb: int = 50
-    log_level: str = "INFO"
-    log_json: bool = True
 
 
 # ---------------------------------------------------------------- domain config models
@@ -116,10 +101,5 @@ def load_domain_config(config_dir: Path) -> DomainConfig:
 
 
 @lru_cache
-def get_settings() -> Settings:
-    return Settings()
-
-
-@lru_cache
 def get_domain_config() -> DomainConfig:
-    return load_domain_config(get_settings().config_dir)
+    return load_domain_config(Path(os.environ.get("SCDQ_CONFIG_DIR", BACKEND_DIR / "config")))
