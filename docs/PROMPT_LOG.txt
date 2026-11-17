@@ -1,0 +1,139 @@
+PROMPT LOG: Supply Chain Data Quality Dashboard
+AI-assisted build session (Claude Code)
+
+Part 1 is the sequence of prompts I used, in order. Spelling is corrected but
+the wording is mine as I typed it.
+Part 2 is my own look back at the prompts: what worked, and how I'd write a few
+of them next time.
+
+
+======================================================================
+PART 1: PROMPTS AS USED
+======================================================================
+
+1) Kick-off (attached: Problem Brief and Domain Primer images)
+
+   "Go through the problem statement once and also the primer to get the
+   gist of the problem statement and what we are trying to build here. We
+   need a working demo of this product that I can showcase. For v1, even if
+   it isn't 100% end-to-end optimised, that is fine; we can work on the
+   optimisations and small nitty-gritties later. The incoming data can be
+   in any format like a txt file, JSON, CSV or XLSX. I have the dummy data
+   with me as well:
+     ~/Downloads/carrier_updates.txt
+     ~/Downloads/db_feed.json
+     ~/Downloads/ops_upload.xlsx
+   Make sure to follow best practices according to the design principles
+   and prepare it like a production-grade system."
+
+   (Claude explored the data and came back with a plan plus three
+   questions. My answers:)
+     - Stack: FastAPI + React
+     - Location: ~/supply-chain-dq
+     - Campaigns: weekly trends plus a Campaign entity with before/after
+       markers
+
+2) Time constraint (sent mid-build)
+
+   "Also keep in mind that we have a time constraint. I want a working demo
+   ready in the next 10 minutes. Later on we can work on its optimisations,
+   improvements and updates needed for it to be called a full-fledged
+   end-to-end product."
+
+3) Checking it generalises beyond the sample files
+
+   "Is the system right now able to take a new sample data file, process
+   that data and provide the metrics in the flow?"
+
+4) Understanding a screen before presenting it
+
+   "Explain the Trends and Campaigns page to me."
+
+5) Gap analysis
+
+   "Now what are the improvements left that can be done on this?"
+
+6) Validating data on the UI (attached: Shipments page screenshot)
+
+   "On this page, if I search for SHP0103 it gives no result. Does shipment
+   SHP0103 exist in any data set?"
+
+7) Questioning a number that didn't add up (attached: SHP0001 detail page)
+
+   "For this particular shipment the Sources tile at the top says 3, but in
+   All Input Records the source shows only OPS_UPLOAD. Why is that? Also, if
+   there is a conflict for any shipment across the data files, what is the
+   source of truth for that shipment?"
+
+8) Removing ambiguity and verifying correctness
+
+   "The current system works, but I don't want any ambiguity in the system.
+   The portal should be self-explanatory. Make sure to check the
+   correctness of the data being shown, and if you have made any decisions,
+   highlight them on the portal."
+
+9) Edge cases (sent mid-build)
+
+   "Also take care of the edge cases. For example, entries for the same
+   shipment in two different source files that contradict each other. In
+   these cases, highlight and flag such shipments if that isn't already
+   happening."
+
+
+======================================================================
+PART 2: LOOKING BACK AT THE PROMPTS
+======================================================================
+
+What I think worked
+- I gave the brief, the domain primer and the real sample files up front,
+  and let the tool explore the data and plan before writing any code.
+  The plan came back grounded in the actual defects in the files.
+- When the tool asked about the stack, the folder and how to show
+  campaigns, I answered quickly instead of leaving it to guess.
+- I set the 10-minute limit while it was building, which forced a sensible
+  cut (in-memory store and a single-page UI first, database and React
+  later) rather than a half-finished "full" build.
+- I didn't trust the output blindly. I checked it against new data
+  (prompt 3), against an ID I expected to find (6) and against a number
+  that looked inconsistent (7). Prompt 7 surfaced a real UI issue: the
+  records table was cut off by a scroll box.
+- Prompt 8 asked for verification, not just more features, and that pass
+  found and fixed real bugs: double counting in issue totals, a chart
+  marker in the wrong week, and duplicates hiding carrier contradictions.
+
+What I'd tighten next time
+- Prompt 1 mixed "demo only" with "production grade". Next time I'd say
+  what production grade means for v1 (tests, config-driven rules,
+  traceability) and what can wait (database, auth, Docker), so the scope
+  is explicit from the start.
+- I'd put the time limit in the first prompt rather than mid-build.
+- Prompt 9 should have been part of prompt 8, or listed the edge cases I
+  care about.
+- I'd ask for tests in the first build rather than the last one.
+
+How I'd phrase a few of them now
+
+1 (kick-off):
+   "Read the problem brief and primer, then look at the three sample files
+   and tell me what data quality problems are planted in them before you
+   design anything. Goal for this session: a demo I can show end to end
+   in the time we have. Must have: ingest any of txt/json/csv/xlsx,
+   consolidate per shipment, quality and completeness metrics, and a way
+   to trace every number back to the raw row. Business rules (milestone
+   aliases, thresholds, source priority) should live in config, not code.
+   Can wait: database, auth, Docker. Show me a plan first."
+
+3 (generalisation):
+   "Prove it handles data it hasn't seen. Make a couple of files with
+   different column names, date formats and nesting, run them through,
+   and show me what the system detected and what changed in the metrics."
+
+8 + 9 (combined):
+   "Before we add anything else, audit what the portal shows. Recompute
+   the key numbers independently from the raw files and compare. Every
+   metric should say what it means, and every assumption you made (source
+   priority, tolerances, stale threshold) should be visible on the portal
+   with where to change it. Also cover contradictions: same shipment and
+   milestone from two files, or two files of the same source, with a
+   different time, location or carrier. Flag those shipments, show both
+   sides with file and row, and add tests for these cases."
