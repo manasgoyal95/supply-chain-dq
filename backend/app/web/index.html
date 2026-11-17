@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Shipment Data Quality</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #f6f7f9; --panel: #fff; --ink: #1a2230; --muted: #5d6878; --line: #e3e7ed;
+    --accent: #2457c5; --ok: #1f8a4c; --warn: #b7791f; --bad: #c0392b; --info: #6b7a90;
+    --ok-bg: #e6f4ec; --warn-bg: #fdf3e1; --bad-bg: #fbe9e7; --info-bg: #eef1f5;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif; background: var(--bg); color: var(--ink); }
+  header { background: #13213d; color: #fff; padding: 14px 24px; display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+  header h1 { font-size: 17px; margin: 0; font-weight: 600; }
+  header .asof { color: #aab7cf; font-size: 12px; }
+  nav { display: flex; gap: 4px; flex-wrap: wrap; }
+  nav button { background: transparent; border: 0; color: #c7d2e6; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+  nav button.active, nav button:hover { background: #24375f; color: #fff; }
+  main { padding: 20px 24px; max-width: 1400px; margin: 0 auto; }
+  .grid { display: grid; gap: 14px; }
+  .kpis { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+  .two { grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
+  .card h3 { margin: 0 0 10px; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); font-weight: 600; }
+  .kpi .v { font-size: 28px; font-weight: 650; }
+  .kpi .s { color: var(--muted); font-size: 12px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; position: sticky; top: 0; background: var(--panel); }
+  tr.click:hover { background: #f1f5fc; cursor: pointer; }
+  .pill { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+  .CLEAN, .VALID { background: var(--ok-bg); color: var(--ok); }
+  .NEEDS_REVIEW, .WARNING { background: var(--warn-bg); color: var(--warn); }
+  .UNUSABLE, .REJECTED, .ERROR { background: var(--bad-bg); color: var(--bad); }
+  .DUPLICATE, .INFO { background: var(--info-bg); color: var(--info); }
+  .bar { height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; min-width: 80px; }
+  .bar > i { display: block; height: 100%; background: var(--accent); }
+  .steps { display: flex; gap: 3px; }
+  .steps span { width: 16px; height: 10px; border-radius: 2px; background: var(--line); }
+  .steps span.on { background: var(--accent); }
+  .muted { color: var(--muted); }
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+  input, select, button.btn { font: inherit; padding: 7px 10px; border: 1px solid var(--line); border-radius: 6px; background: #fff; }
+  button.btn { cursor: pointer; }
+  button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .drop { border: 2px dashed #b9c4d6; border-radius: 10px; padding: 30px; text-align: center; color: var(--muted); background: #fbfcfe; }
+  .drop.over { border-color: var(--accent); background: #eef3fd; }
+  .timeline { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+  .ms { border: 1px solid var(--line); border-radius: 8px; padding: 10px; min-height: 120px; font-size: 12px; }
+  .ms.missing { background: repeating-linear-gradient(45deg, #fafbfc, #fafbfc 6px, #f1f3f6 6px, #f1f3f6 12px); color: var(--muted); }
+  .ms b { display: block; font-size: 12px; margin-bottom: 4px; }
+  .ms .src { font-weight: 600; color: var(--accent); }
+  .alt { margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--line); color: var(--muted); }
+  pre { background: #f4f6f9; padding: 6px 8px; border-radius: 6px; font-size: 11px; white-space: pre-wrap; word-break: break-word; margin: 4px 0 0; }
+  .scroll { max-height: 560px; overflow: auto; }
+  .heat td.c { text-align: center; font-variant-numeric: tabular-nums; }
+  .delta.up { color: var(--ok); font-weight: 600; } .delta.down { color: var(--bad); font-weight: 600; }
+  .hidden { display: none; }
+  .back { cursor: pointer; color: var(--accent); margin-bottom: 10px; display: inline-block; }
+  canvas { max-height: 280px; }
+  @media (max-width: 700px) { main { padding: 12px 16px; } .two { grid-template-columns: 1fr; } .timeline { grid-template-columns: repeat(2, 1fr); } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Shipment Data Quality</h1>
+  <nav id="nav"></nav>
+  <span class="asof" id="asof"></span>
+</header>
+<main id="app"></main>
+
+<script>
+const API = '/api/v1';
+const MS = ['GATE_IN', 'LOADED', 'DEPARTED', 'ARRIVED', 'DISCHARGED', 'DELIVERED'];
+const COLORS = ['#2457c5', '#d97706', '#0f9d77', '#9333ea', '#dc2626', '#0891b2'];
+const TABS = { overview: 'Overview', sources: 'Sources', shipments: 'Shipments', issues: 'Data Issues', trends: 'Trends & Campaigns', ingest: 'Ingest', rules: 'Rules' };
+let charts = [], RULES = {}, current = 'overview';
+
+const $ = (s) => document.querySelector(s);
+const esc = (v) => String(v ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const pill = (s) => `<span class="pill ${esc(s)}">${esc(String(s).replace('_', ' '))}</span>`;
+const fmt = (ts) => ts ? new Date(ts).toISOString().slice(0, 16).replace('T', ' ') : '—';
+const pct = (v) => `${(+v).toFixed(1)}%`;
+const ruleTag = (c) => `<span class="pill ${RULES[c]?.severity || 'INFO'}" title="${esc(RULES[c]?.description)}">${c} ${esc(RULES[c]?.name || '')}</span>`;
+async function get(p) { const r = await fetch(API + p); if (!r.ok) throw new Error((await r.json()).error?.message || r.statusText); return r.json(); }
+function chart(el, cfg) { const c = new Chart(el, cfg); charts.push(c); return c; }
+
+function nav() {
+  $('#nav').innerHTML = Object.entries(TABS).map(([k, v]) => `<button data-t="${k}" class="${k === current ? 'active' : ''}">${v}</button>`).join('');
+  $('#nav').onclick = (e) => { if (e.target.dataset.t) show(e.target.dataset.t); };
+}
+async function show(tab, arg) {
+  current = tab; nav(); charts.forEach(c => c.destroy()); charts = [];
+  const ov = await get('/metrics/overview');
+  $('#asof').textContent = ov.as_of ? `Data as-of ${fmt(ov.as_of)} UTC · ${ov.runs} file(s) ingested` : 'No data yet';
+  if (!ov.events_received && tab !== 'ingest' && tab !== 'rules') return empty();
+  await ({ overview, sources, shipments, issues, trends, ingest, rules: rulesView, shipment })[tab](ov, arg);
+}
+function empty() {
+  $('#app').innerHTML = `<div class="card"><h3>No data ingested</h3><p>Upload files on the Ingest tab, or load the provided sample files.</p>
+    <button class="btn primary" onclick="loadSamples()">Load sample data</button></div>`;
+}
+async function loadSamples() { await fetch(API + '/admin/load-samples', { method: 'POST' }); show('overview'); }
+
+// ---------------------------------------------------------------- Overview
+async function overview(ov) {
+  const rs = ov.record_status, ss = ov.shipment_status, n = ov.shipments || 1;
+  $('#app').innerHTML = `
+  <div class="grid kpis">
+    ${kpi('Events processed', ov.events_received, `${rs.VALID} valid · ${rs.WARNING} warn · ${rs.REJECTED} rejected · ${rs.DUPLICATE} dup`)}
+    ${kpi('Shipments', ov.shipments, `${ov.sources} source systems`)}
+    ${kpi('Avg journey completeness', pct(ov.avg_completeness), `of the 6-milestone journey`)}
+    ${kpi('Data quality score', ov.avg_score, `${ov.avg_score_usable} excluding unusable`)}
+    ${kpi('Clean shipments', pct(100 * ss.CLEAN / n), `${ss.CLEAN} shipments`, 'var(--ok)')}
+    ${kpi('Need review', pct(100 * ss.NEEDS_REVIEW / n), `${ss.NEEDS_REVIEW} shipments`, 'var(--warn)')}
+    ${kpi('Unusable', pct(100 * ss.UNUSABLE / n), `${ss.UNUSABLE} shipments`, 'var(--bad)')}
+  </div>
+  <div class="grid two" style="margin-top:14px">
+    <div class="card"><h3>Milestone coverage across shipments</h3><canvas id="c1"></canvas></div>
+    <div class="card"><h3>Shipment status</h3><canvas id="c2"></canvas></div>
+    <div class="card"><h3>Issues by rule</h3><div class="scroll" style="max-height:300px"><table>
+      <tr><th>Rule</th><th>Count</th><th>What it means</th></tr>
+      ${Object.entries(ov.issues_by_rule).map(([c, v]) => `<tr class="click" onclick="show('issues','${c}')"><td>${ruleTag(c)}</td><td>${v}</td><td class="muted">${esc(RULES[c]?.impact)}</td></tr>`).join('')}
+    </table></div></div>
+    <div class="card"><h3>Journey state</h3><canvas id="c3"></canvas></div>
+  </div>`;
+  chart($('#c1'), { type: 'bar', data: { labels: MS, datasets: [{ label: 'Shipments with milestone', data: MS.map(m => ov.milestone_coverage[m]), backgroundColor: '#2457c5', borderRadius: 4 }] },
+    options: { plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => `${c.raw} of ${ov.shipments} shipments (${(100 * c.raw / n).toFixed(0)}%)` } } }, scales: { y: { beginAtZero: true, max: ov.shipments } } } });
+  chart($('#c2'), { type: 'doughnut', data: { labels: ['Clean', 'Needs review', 'Unusable'], datasets: [{ data: [ss.CLEAN, ss.NEEDS_REVIEW, ss.UNUSABLE], backgroundColor: ['#1f8a4c', '#d39b2f', '#c0392b'] }] }, options: { cutout: '62%', plugins: { legend: { position: 'right' } } } });
+  const js = ov.journey_state;
+  chart($('#c3'), { type: 'bar', data: { labels: Object.keys(js).map(k => k.replaceAll('_', ' ').toLowerCase()), datasets: [{ data: Object.values(js), backgroundColor: '#6b7a90', borderRadius: 4 }] }, options: { indexAxis: 'y', plugins: { legend: { display: false } } } });
+}
+const kpi = (l, v, s, color) => `<div class="card kpi"><h3>${l}</h3><div class="v" style="${color ? 'color:' + color : ''}">${v}</div><div class="s">${s}</div></div>`;
+
+// ---------------------------------------------------------------- Sources
+async function sources() {
+  const src = await get('/metrics/sources');
+  const heat = (v) => `background: hsl(${Math.round(v * 1.2)}, 65%, ${92 - v * 0.1}%)`;
+  $('#app').innerHTML = `
+  <div class="grid kpis">${src.map(s => `<div class="card kpi"><h3>${esc(s.display_name)}</h3><div class="v">${s.score}</div>
+    <div class="s">${s.records} records · ${s.shipments} shipments · priority ${s.priority}</div>
+    <div class="s" style="margin-top:6px">${pill('VALID')} ${s.status.VALID} ${pill('REJECTED')} ${s.status.REJECTED} ${pill('DUPLICATE')} ${s.status.DUPLICATE}</div></div>`).join('')}</div>
+  <div class="grid two" style="margin-top:14px">
+    <div class="card"><h3>Source score breakdown</h3><canvas id="c1"></canvas></div>
+    <div class="card"><h3>Field completeness (% of records)</h3><table class="heat">
+      <tr><th>Source</th>${Object.keys(src[0].field_completeness).map(k => `<th>${k}</th>`).join('')}</tr>
+      ${src.map(s => `<tr><td>${s.source}</td>${Object.values(s.field_completeness).map(v => `<td class="c" style="${heat(v)}">${v}</td>`).join('')}</tr>`).join('')}
+    </table>
+    <h3 style="margin-top:18px">Milestone × source coverage (usable events)</h3><table class="heat">
+      <tr><th>Source</th>${MS.map(m => `<th>${m}</th>`).join('')}</tr>
+      ${src.map(s => `<tr><td>${s.source}</td>${MS.map(m => `<td class="c" style="${s.milestones[m] ? 'background:#e6eefc' : 'color:#b5bdc9'}">${s.milestones[m]}</td>`).join('')}</tr>`).join('')}
+    </table></div>
+    <div class="card"><h3>Cross-source agreement</h3><table>
+      <tr><th>Source</th><th>Overlapping milestones</th><th>Agreement</th><th>Shipments in conflict</th><th>Golden events supplied</th></tr>
+      ${src.map(s => `<tr><td>${s.source}</td><td>${s.overlaps}</td><td>${pct(s.agreement_rate)}</td><td>${s.shipments_with_conflicts}</td><td>${s.golden_events}</td></tr>`).join('')}
+    </table><p class="muted">When sources disagree, the higher-priority source supplies the "golden" event; the others are kept as alternates and the conflict is flagged.</p></div>
+  </div>`;
+  const keys = ['validity', 'field_completeness', 'uniqueness', 'agreement'];
+  chart($('#c1'), { type: 'bar', data: { labels: keys.map(k => k.replace('_', ' ')), datasets: src.map((s, i) => ({ label: s.source, data: keys.map(k => +(s.score_breakdown[k] * 100).toFixed(1)), backgroundColor: COLORS[i % 6], borderRadius: 3 })) },
+    options: { scales: { y: { beginAtZero: true, max: 100 } } } });
+}
+
+// ---------------------------------------------------------------- Shipments
+async function shipments() {
+  $('#app').innerHTML = `<div class="card"><div class="row">
+    <input id="q" placeholder="Search shipment id">
+    <select id="st"><option value="">All statuses</option><option>CLEAN</option><option>NEEDS_REVIEW</option><option>UNUSABLE</option></select>
+    <span class="muted" id="cnt"></span></div><div class="scroll" id="tbl"></div></div>`;
+  const load = async () => {
+    const q = $('#q').value, st = $('#st').value;
+    const rows = await get(`/shipments?${new URLSearchParams({ ...(q && { q }), ...(st && { status: st }) })}`);
+    $('#cnt').textContent = `${rows.length} shipments`;
+    $('#tbl').innerHTML = `<table><tr><th>Shipment</th><th>Status</th><th>Journey</th><th>Completeness</th><th>Score</th><th>Latest</th><th>Sources</th><th>Issues</th></tr>
+      ${rows.map(r => `<tr class="click" onclick="show('shipment','${r.shipment_id}')"><td><b>${r.shipment_id}</b></td><td>${pill(r.status)}</td>
+      <td><div class="steps">${MS.map(m => `<span class="${r.milestones.includes(m) ? 'on' : ''}" title="${m}"></span>`).join('')}</div></td>
+      <td>${pct(r.completeness)}</td><td>${r.score}</td><td>${r.latest_milestone || '—'}</td><td class="muted">${r.sources.join(', ')}</td>
+      <td>${r.issues.map(ruleTag).join(' ')}</td></tr>`).join('')}</table>`;
+  };
+  $('#q').oninput = load; $('#st').onchange = load; load();
+}
+async function shipment(_, id) {
+  current = 'shipments'; nav();
+  const d = await get('/shipments/' + id);
+  const rec = (r) => `<div><span class="src">${esc(r.source)}</span> ${fmt(r.event_ts)}<br>${esc(r.location || 'no location')}${r.carrier ? ' · ' + esc(r.carrier) : ''}
+    <pre title="${esc(r.file)} ${esc(r.locator)}">${esc(r.file)} · ${esc(r.locator)}\n${esc(typeof r.raw === 'string' ? r.raw : JSON.stringify(r.raw))}</pre></div>`;
+  const b = d.score_breakdown;
+  $('#app').innerHTML = `<span class="back" onclick="show('shipments')">← All shipments</span>
+  <div class="grid kpis">${kpi(d.shipment_id, pill(d.status), d.journey.replaceAll('_', ' ').toLowerCase())}
+    ${kpi('Completeness', pct(d.completeness), `${d.milestones.length} of 6 milestones`)}
+    ${kpi('Quality score', d.score, b.completeness !== undefined ? `completeness ${b.completeness} · consistency ${b.consistency} · validity ${b.validity}` : '')}
+    ${kpi('Sources', d.sources.length, d.sources.join(', '))}</div>
+  <div class="card" style="margin-top:14px"><h3>Consolidated milestone journey</h3><div class="timeline">
+    ${d.timeline.map(t => `<div class="ms ${t.golden ? '' : 'missing'}"><b>${t.label}</b>${t.golden ? rec(t.golden) : 'Not reported by any source'}
+      ${t.alternates.map(a => `<div class="alt">Also reported:${rec(a)}</div>`).join('')}</div>`).join('')}
+  </div></div>
+  <div class="grid two" style="margin-top:14px">
+    <div class="card"><h3>Issues</h3>${d.issue_details.length ? `<table>${d.issue_details.map(i => `<tr><td>${ruleTag(i.code)}</td><td>${esc(i.message)}</td></tr>`).join('')}</table>` : '<p class="muted">No issues — clean.</p>'}</div>
+    <div class="card"><h3>All input records (lineage)</h3><div class="scroll" style="max-height:340px"><table>
+      <tr><th>Status</th><th>Source</th><th>Raw milestone</th><th>Raw time</th><th>Where</th></tr>
+      ${d.records.map(r => `<tr><td>${pill(r.status)}</td><td>${r.source}</td><td>${esc(r.milestone_raw)} → ${r.milestone || '?'}</td><td>${esc(r.timestamp_raw || '—')}</td><td class="muted">${esc(r.file)} · ${esc(r.locator)}${r.issues.length ? '<br>' + r.issues.map(i => ruleTag(i.code)).join(' ') : ''}</td></tr>`).join('')}
+    </table></div></div>
+  </div>`;
+}
+
+// ---------------------------------------------------------------- Issues
+async function issues(_, rule) {
+  $('#app').innerHTML = `<div class="card"><div class="row">
+    <select id="fs"><option value="">Rejected / warning / duplicate</option><option>REJECTED</option><option>WARNING</option><option>DUPLICATE</option></select>
+    <select id="fr"><option value="">Any rule</option>${Object.values(RULES).map(r => `<option value="${r.code}">${r.code} ${r.name}</option>`).join('')}</select>
+    <span class="muted" id="cnt"></span></div><div class="scroll" id="tbl"></div></div>`;
+  if (rule) $('#fr').value = rule;
+  const load = async () => {
+    const st = $('#fs').value, ru = $('#fr').value;
+    if (ru && RULES[ru]?.level === 'shipment') {
+      const rows = (await get('/shipments')).filter(r => r.issues.includes(ru) || r.info.includes(ru));
+      $('#cnt').textContent = `${rows.length} shipments flagged by ${ru}`;
+      $('#tbl').innerHTML = `<table><tr><th>Shipment</th><th>Status</th><th>Completeness</th><th>Issues</th></tr>${rows.map(r => `<tr class="click" onclick="show('shipment','${r.shipment_id}')"><td><b>${r.shipment_id}</b></td><td>${pill(r.status)}</td><td>${pct(r.completeness)}</td><td>${r.issues.map(ruleTag).join(' ')}</td></tr>`).join('')}</table>`;
+      return;
+    }
+    let rows = await get(`/records?${new URLSearchParams({ ...(st && { status: st }), ...(ru && { rule: ru }) })}`);
+    if (!st) rows = rows.filter(r => r.status !== 'VALID');
+    $('#cnt').textContent = `${rows.length} records`;
+    $('#tbl').innerHTML = `<table><tr><th>Status</th><th>Source</th><th>File / position</th><th>Shipment</th><th>Issues</th><th>Raw input</th></tr>
+      ${rows.map(r => `<tr><td>${pill(r.status)}</td><td>${r.source}</td><td class="muted">${esc(r.file)}<br>${esc(r.locator)}</td><td>${r.shipment_id ? `<a href="#" onclick="show('shipment','${r.shipment_id}');return false">${r.shipment_id}</a>` : '—'}</td>
+      <td>${r.issues.map(i => `${ruleTag(i.code)}<div class="muted">${esc(i.message)}</div>`).join('')}</td><td><pre>${esc(typeof r.raw === 'string' ? r.raw : JSON.stringify(r.raw))}</pre></td></tr>`).join('')}</table>`;
+  };
+  $('#fs').onchange = load; $('#fr').onchange = load; load();
+}
+
+// ---------------------------------------------------------------- Trends & campaigns
+async function trends() {
+  const [t, camps, src] = await Promise.all([get('/metrics/trends'), get('/campaigns'), get('/metrics/sources')]);
+  $('#app').innerHTML = `
+  <div class="grid two">
+    <div class="card"><h3>Shipment cohort quality by week (first event)</h3><canvas id="c1"></canvas></div>
+    <div class="card"><h3>Record validity by source and week</h3><canvas id="c2"></canvas></div>
+  </div>
+  <div class="card" style="margin-top:14px"><h3>Improvement campaigns</h3>
+    <div class="row"><input id="cn" placeholder="Campaign name" value="Carrier data capture drive">
+      <select id="cs"><option value="">All sources</option>${src.map(s => `<option>${s.source}</option>`).join('')}</select>
+      <label class="muted">Start <input type="date" id="cd" value="${t.weeks.length ? weekToDate(t.weeks[Math.floor(t.weeks.length / 2)]) : ''}"></label>
+      <button class="btn primary" id="cadd">Add campaign</button></div>
+    ${camps.length ? `<table><tr><th>Campaign</th><th>Source</th><th>Start</th><th>Records before → after</th><th>Validity</th><th>Rejected</th><th>Location completeness</th><th>Duplicates</th><th></th></tr>
+      ${camps.map(c => { const i = c.impact; return `<tr><td><b>${esc(c.name)}</b></td><td>${c.source || 'All'}</td><td>${c.start_date}</td><td>${i.before.records} → ${i.after.records}</td>
+      ${['validity', 'rejected_pct', 'location_completeness', 'duplicate_pct'].map((k, j) => cell(i, k, j === 1 || j === 3)).join('')}
+      <td><button class="btn" onclick="delCampaign(${c.id})">Remove</button></td></tr>`; }).join('')}</table>`
+      : '<p class="muted">No campaigns yet. Add one to compare data quality before vs after its start date; it is also marked on the charts.</p>'}
+  </div>`;
+  const marker = { id: 'm', afterDraw(ch) { camps.forEach(c => { const wk = dateToWeek(c.start_date); const x = ch.scales.x.getPixelForValue(t.weeks.indexOf(wk) >= 0 ? t.weeks.indexOf(wk) : ch.scales.x.getLabels?.().indexOf(wk)); if (x == null || isNaN(x)) return; const g = ch.ctx; g.save(); g.strokeStyle = '#c0392b'; g.setLineDash([4, 4]); g.beginPath(); g.moveTo(x, ch.chartArea.top); g.lineTo(x, ch.chartArea.bottom); g.stroke(); g.fillStyle = '#c0392b'; g.font = '11px sans-serif'; g.fillText(c.name, x + 4, ch.chartArea.top + 12); g.restore(); }); } };
+  chart($('#c1'), { type: 'line', plugins: [marker], data: { labels: t.shipments.map(s => s.week), datasets: [
+    { label: 'Avg completeness %', data: t.shipments.map(s => s.avg_completeness), borderColor: COLORS[0], tension: .25 },
+    { label: 'Avg quality score', data: t.shipments.map(s => s.avg_score), borderColor: COLORS[2], tension: .25 },
+    { label: 'Clean %', data: t.shipments.map(s => s.clean_pct), borderColor: COLORS[1], tension: .25 }] }, options: { scales: { y: { beginAtZero: true, max: 100 } } } });
+  chart($('#c2'), { type: 'line', plugins: [marker], data: { labels: t.weeks, datasets: Object.entries(t.sources).map(([s, pts], i) => ({ label: s, data: t.weeks.map(w => pts.find(p => p.week === w)?.validity ?? null), borderColor: COLORS[i % 6], spanGaps: true, tension: .25 })) }, options: { scales: { y: { beginAtZero: true, max: 100 } } } });
+  $('#cadd').onclick = async () => {
+    await fetch(API + '/campaigns', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: $('#cn').value, source: $('#cs').value || null, start_date: $('#cd').value }) });
+    show('trends');
+  };
+}
+function cell(i, k, lowerIsBetter) {
+  if (!i.before.records || !i.after.records) return '<td class="muted">n/a</td>';
+  const d = i.delta[k], good = lowerIsBetter ? d < 0 : d > 0;
+  return `<td>${i.before[k]} → ${i.after[k]} <span class="delta ${d === 0 ? '' : good ? 'up' : 'down'}">(${d > 0 ? '+' : ''}${d})</span></td>`;
+}
+async function delCampaign(id) { await fetch(API + '/campaigns/' + id, { method: 'DELETE' }); show('trends'); }
+function weekToDate(w) { const [y, wk] = w.split('-W').map(Number); const d = new Date(Date.UTC(y, 0, 4)); d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7) + (wk - 1) * 7); return d.toISOString().slice(0, 10); }
+function dateToWeek(s) { const d = new Date(s + 'T00:00:00Z'); const t = new Date(d); t.setUTCDate(d.getUTCDate() + 3 - ((d.getUTCDay() + 6) % 7)); const y = t.getUTCFullYear(); const w1 = new Date(Date.UTC(y, 0, 4)); const wk = 1 + Math.round(((t - w1) / 864e5 - 3 + ((w1.getUTCDay() + 6) % 7)) / 7); return `${y}-W${String(wk).padStart(2, '0')}`; }
+
+// ---------------------------------------------------------------- Ingest
+async function ingest() {
+  const runs = await get('/runs');
+  $('#app').innerHTML = `
+  <div class="card"><h3>Upload source files</h3>
+    <div class="drop" id="drop">Drop .xlsx, .csv, .json, .ndjson or .txt files here, or <label style="color:var(--accent);cursor:pointer"><u>browse</u><input type="file" id="file" multiple hidden></label>
+      <div style="margin-top:10px"><input id="srcov" placeholder="Source name (optional — auto-detected)"></div></div>
+    <div class="row" style="margin-top:10px"><button class="btn" onclick="loadSamples()">Load provided sample files</button>
+      <button class="btn" onclick="resetAll()">Reset all data</button><span id="msg" class="muted"></span></div></div>
+  <div class="card" style="margin-top:14px"><h3>Ingestion runs</h3><table>
+    <tr><th>File</th><th>Format</th><th>Source (how resolved)</th><th>Received</th><th>Valid</th><th>Warning</th><th>Rejected</th><th>Duplicate</th><th>Column mapping / notes</th></tr>
+    ${runs.map(r => `<tr><td><b>${esc(r.filename)}</b><div class="muted">${fmt(r.started_at)}</div></td><td>${r.format}</td><td>${r.source}<div class="muted">${r.source_resolution}</div></td>
+      <td>${r.counts.received}</td><td>${r.counts.VALID || 0}</td><td>${r.counts.WARNING || 0}</td><td>${r.counts.REJECTED || 0}</td><td>${r.counts.DUPLICATE || 0}</td>
+      <td class="muted">${Object.entries(r.column_mapping).map(([a, b]) => `${esc(a)} → ${b}`).join(', ')}${r.notes.length ? '<br>' + r.notes.map(esc).join('<br>') : ''}</td></tr>`).join('') || '<tr><td colspan="9" class="muted">No runs yet</td></tr>'}
+  </table></div>`;
+  const drop = $('#drop');
+  const send = async (files) => {
+    const fd = new FormData(); [...files].forEach(f => fd.append('files', f)); if ($('#srcov').value) fd.append('source', $('#srcov').value);
+    $('#msg').textContent = 'Uploading…';
+    const r = await fetch(API + '/ingest', { method: 'POST', body: fd }); const j = await r.json();
+    if (!r.ok) { $('#msg').textContent = j.error?.message || 'Upload failed'; return; }
+    $('#msg').textContent = j.map(x => `${x.filename}: ${x.status === 'COMPLETED' ? x.counts.received + ' records' : 'already ingested (skipped)'}`).join(' · ');
+    setTimeout(() => show('ingest'), 1200);
+  };
+  $('#file').onchange = (e) => send(e.target.files);
+  drop.ondragover = (e) => { e.preventDefault(); drop.classList.add('over'); };
+  drop.ondragleave = () => drop.classList.remove('over');
+  drop.ondrop = (e) => { e.preventDefault(); drop.classList.remove('over'); send(e.dataTransfer.files); };
+}
+async function resetAll() { if (confirm('Delete all ingested data?')) { await fetch(API + '/admin/reset', { method: 'POST' }); show('ingest'); } }
+
+// ---------------------------------------------------------------- Rules
+async function rulesView() {
+  $('#app').innerHTML = `<div class="card"><h3>Data quality rule catalog</h3><table><tr><th>Code</th><th>Level</th><th>Severity</th><th>Description</th><th>Impact</th></tr>
+    ${Object.values(RULES).map(r => `<tr><td><b>${r.code}</b> ${r.name}</td><td>${r.level}</td><td>${pill(r.severity)}</td><td>${esc(r.description)}</td><td class="muted">${esc(r.impact)}</td></tr>`).join('')}</table>
+    <p class="muted">Shipment score = 50% completeness + 30% consistency (sequence & cross-source agreement) + 20% record validity. Weights and thresholds live in <code>backend/config/quality.yaml</code>.</p></div>`;
+}
+
+(async () => { (await get('/rules')).forEach(r => RULES[r.code] = r); show('overview'); })();
+</script>
+</body>
+</html>

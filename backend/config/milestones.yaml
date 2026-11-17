@@ -1,0 +1,28 @@
+# Canonical milestone sequence and the aliases each source system uses for it.
+# Matching is case-insensitive and ignores punctuation/whitespace ("Gate In" == "GATE_IN" == "gate-in").
+# Add a new alias here instead of changing code when a source introduces a new label.
+sequence:
+  - code: GATE_IN
+    label: Gate In
+    description: Cargo or container enters the origin terminal.
+    aliases: [gate in, gatein, gate_in, gin, gti, gate in full, received at terminal, ingate, in gate]
+  - code: LOADED
+    label: Loaded
+    description: Cargo is loaded onto the transport.
+    aliases: [loaded, load, lod, ld, loaded on vessel, loaded onboard, vessel loaded]
+  - code: DEPARTED
+    label: Departed
+    description: The transport leaves the origin.
+    aliases: [departed, departure, dep, dpt, sailed, vessel departed, vd, atd]
+  - code: ARRIVED
+    label: Arrived
+    description: The transport reaches the destination port or terminal.
+    aliases: [arrived, arrival, arr, ava, vessel arrived, va, ata]
+  - code: DISCHARGED
+    label: Discharged
+    description: Cargo is unloaded from the transport.
+    aliases: [discharged, discharge, dsc, dis, dch, unloaded, unload, vessel discharged]
+  - code: DELIVERED
+    label: Delivered
+    description: Cargo reaches the final receiver.
+    aliases: [delivered, delivery, dlv, del, pod, proof of delivery, delivered to consignee, final delivery]

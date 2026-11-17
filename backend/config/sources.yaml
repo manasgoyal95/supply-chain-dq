@@ -1,0 +1,61 @@
+# Source registry. A source is a system/channel shipment information arrives from.
+# Resolution order for an uploaded file:
+#   1. explicit `source` passed by the uploader
+#   2. a per-record "source" column/field whose value matches a source's `aliases`
+#   3. a filename glob in `filename_patterns`
+#   4. fallback: the file name stem, upper-cased (new sources appear automatically)
+# `priority`: lower number wins when sources disagree on the same milestone (golden record selection).
+sources:
+  SYSTEM_FEED:
+    display_name: System Feed (DB/API)
+    description: System-generated event feed exported from the operational database.
+    priority: 1
+    aliases: [json, db, db_feed, system, system_feed, api]
+    filename_patterns: ["db_feed*", "*feed*", "*api*"]
+  OPS_UPLOAD:
+    display_name: Operations Upload
+    description: Manual spreadsheet uploads by the operations team.
+    priority: 2
+    aliases: [ops, ops_upload, operations, manual, excel]
+    filename_patterns: ["ops*", "*upload*", "*operations*"]
+  CARRIER:
+    display_name: Carrier Updates
+    description: Free-text status messages received from carriers (email/EDI text).
+    priority: 3
+    aliases: [carrier, carrier_updates, carrier_text, email]
+    filename_patterns: ["carrier*", "*carrier*"]
+
+default_priority: 50
+
+# Column-name synonyms used to map any tabular/JSON input onto canonical fields.
+# Header matching normalises case, punctuation and whitespace.
+field_synonyms:
+  shipment_id: [shipment_id, shipment no, shipment number, shipment, shipment ref, shipment reference,
+                shp id, shpid, shipment_no, consignment, consignment id, tracking id, tracking number, bl, bl number]
+  milestone: [milestone, event_code, event code, event, event type, event_type, event name, status, status code,
+              milestone code, activity]
+  event_time: [event_time, event time, event_timestamp, event timestamp, timestamp, event date, event datetime,
+               datetime, date time, occurred at, event_ts, time]
+  location: [location, unlocode, un locode, locode, port, place, location code, port code, facility]
+  carrier: [carrier, carrier_code, carrier code, scac, line, shipping line]
+  source: [source, source system, system]
+  notes: [source notes, notes, note, remarks, remark, comment, comments]
+
+# Free-text patterns (tried in order) for unstructured sources such as carrier messages.
+# Named groups map to canonical fields. A line may hold several messages separated by `segment_separator`.
+text:
+  segment_separator: ";"
+  patterns:
+    - name: shipment_was_event
+      regex: >-
+        ^\s*shipment\s+(?P<shipment_id>[A-Za-z0-9_\-/]+)\s+(?:was|is|has\s+been)\s+(?P<milestone>[A-Za-z][A-Za-z _\-]*?)
+        (?:\s+at\s+(?P<location>[A-Za-z0-9]{2,8}))?
+        (?:\s+on\s+(?P<event_time>\d{1,4}[\-/.]\d{1,2}[\-/.]\d{1,4}(?:[ T]\d{1,2}:\d{2}(?::\d{2})?)?(?:\s*(?:UTC|GMT|Z|[+\-]\d{2}:?\d{2}))?))?
+        \s*(?:\.\s*(?P<notes>.*?))?\s*$
+
+# Parsing behaviour
+parsing:
+  day_first: true            # interpret ambiguous 03/04/2026 as 3 April
+  assume_timezone: UTC       # applied to timestamps without an explicit offset
+  null_tokens: ["", "-", "n/a", "na", "null", "none", "unknown", "nil", "?"]
+  header_scan_rows: 25       # rows scanned to auto-detect the header in spreadsheets/CSV

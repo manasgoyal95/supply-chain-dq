@@ -1,0 +1,25 @@
+# Data-quality thresholds and score weights. Changing these and calling POST /api/v1/admin/reprocess
+# recomputes every record, shipment and score from the stored raw records.
+conflict_time_tolerance_minutes: 60   # same milestone from 2 sources further apart than this => conflict
+stale_after_days: 14                  # undelivered shipment with no event for this long (vs dataset as-of) => stale
+future_tolerance_hours: 24            # timestamps further in the future than this => warning
+
+shipment_score_weights:              # must sum to 1
+  completeness: 0.5
+  consistency: 0.3
+  validity: 0.2
+
+consistency_penalties:
+  out_of_sequence: 0.5               # per sequence violation
+  conflict: 0.25                     # per conflicting milestone
+
+source_score_weights:                # must sum to 1
+  validity: 0.5
+  field_completeness: 0.2
+  uniqueness: 0.15
+  agreement: 0.15
+
+record_validity_credit:              # how much a record counts towards "validity"
+  VALID: 1.0
+  WARNING: 0.5
+  REJECTED: 0.0
